@@ -1,34 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-// import '../widgets/bottom_navigation.dart';
+import '../widgets/bottom_navigation.dart';
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          '幻境',
-          style: TextStyle(color: Colors.black87, fontSize: 16),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Row(
-              children: [
-                Text(
-                  'G******',
-                  style: TextStyle(color: Colors.black54, fontSize: 14),
-                ),
-                Icon(Icons.keyboard_arrow_down, color: Colors.black54),
-              ],
-            ),
-          )
-        ],
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Colors.white,
+      //   elevation: 0,
+      //   title: Text(
+      //     '幻境',
+      //     style: TextStyle(color: Colors.black87, fontSize: 16),
+      //   ),
+      //   actions: [
+      //     Padding(
+      //       padding: const EdgeInsets.only(right: 16.0),
+      //       child: Row(
+      //         children: [
+      //           Text(
+      //             'G******',
+      //             style: TextStyle(color: Colors.black54, fontSize: 14),
+      //           ),
+      //           Icon(Icons.keyboard_arrow_down, color: Colors.black54),
+      //         ],
+      //       ),
+      //     )
+      //   ],
+      // ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -38,10 +38,10 @@ class HomePage extends StatelessWidget {
               height: 200,
               decoration: BoxDecoration(
                 color: Colors.brown.shade800,
-                image: DecorationImage(
-                  image: AssetImage('assets/images/tunnel.jpg'),
-                  fit: BoxFit.cover,
-                ),
+                // image: DecorationImage(
+                //   image: AssetImage('assets/images/tunnel.jpg'),
+                //   fit: BoxFit.cover,
+                // ),
               ),
               child: Center(
                 child: Text(
@@ -141,9 +141,9 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),
       ),
-      // bottomNavigationBar: CustomBottomNavigation(
-      //   currentIndex: 0,
-      // ),
+      bottomNavigationBar: CustomBottomNavigation(
+        currentIndex: 0,
+      ),
     );
   }
   

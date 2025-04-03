@@ -1,17 +1,32 @@
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import '../pages/home_page.dart';
-import '../pages/shop_page.dart';
-import '../pages/message_page.dart';
-import '../pages/mine_page.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
+// import 'dart:io' show Platform; // 用于检测平台
+
+import 'package:go_router/go_router.dart';
+import '/pages/home_page.dart';
+// import '/pages/shop_page.dart';
+import '/pages/message_page.dart';
+import '/pages/mine_page.dart';
 void main() {
-  // 使用新的方法设置 URL 策略
-  // setUrlStrategy(PathUrlStrategy());
-  
+  WidgetsFlutterBinding.ensureInitialized();
+
+ // 强制设置 WebViewPlatform 实现
+  if (WebViewPlatform.instance == null) {
+    // 如果是 iOS 模拟器或设备，优先使用 WebKitWebView
+    // if (Platform.isIOS || Platform.isMacOS) { // macOS 上运行 iOS 模拟器
+    //   WebViewPlatform.instance = WebKitWebViewPlatform();
+    // }
+    // //  else if (Platform.isAndroid) {
+    //   WebViewPlatform.instance = AndroidWebView();
+    // } else {
+    //   // 默认实现（例如 macOS 或其他平台）
+    //   WebViewPlatform.instance = WebKitWebView(); // 或者根据需要选择
+    // }
+  }
+
   runApp(MyApp());
 }
 
@@ -21,10 +36,10 @@ final GoRouter router = GoRouter(
       path: '/',
       builder: (context, state) => HomePage(),
     ),
-     GoRoute(
-       path: '/shop',
-       builder: (context, state) => ShopPage(),
-     ),
+    //  GoRoute(
+    //    path: '/shop',
+    //    builder: (context, state) => ShopPage(),
+    //  ),
     GoRoute(
       path: '/message',
       builder: (context, state) => MessagePage(),
@@ -35,7 +50,6 @@ final GoRouter router = GoRouter(
     ),
   ],
 );
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -49,142 +63,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-// ...
-
-// class MyAppState extends ChangeNotifier {
-//   var current = WordPair.random();
-
-//   void getNext() {
-//     current = WordPair.random();
-//     notifyListeners();
-//   }
-
-//   // ↓ Add the code below.
-//   var favorites = <WordPair>[];
-
-//   void toggleFavorite() {
-//     if (favorites.contains(current)) {
-//       favorites.remove(current);
-//     } else {
-//       favorites.add(current);
-//     }
-//     notifyListeners();
-//   }
-// }
-
-// // ...
-
-// class MyHomePage extends StatelessWidget {
+// class MyApp extends StatelessWidget {
 //   @override
 //   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Row(
-//         children: [
-//           SafeArea(
-//             child: NavigationRail(
-//               extended: false,
-//               destinations: [
-//                 NavigationRailDestination(
-//                   icon: Icon(Icons.home),
-//                   label: Text('Home'),
-//                 ),
-//                 NavigationRailDestination(
-//                   icon: Icon(Icons.favorite),
-//                   label: Text('Favorites'),
-//                 ),
-//               ],
-//               selectedIndex: 0,
-//               onDestinationSelected: (value) {
-//                 print('selected: $value');
-//               },
-//             ),
-//           ),
-//           Expanded(
-//             child: Container(
-//               color: Theme.of(context).colorScheme.primaryContainer,
-//               child: GeneratorPage(),
-//             ),
-//           ),
-//         ],
-//       ),
+//     return MaterialApp(
+//       home: HomePage(),
 //     );
 //   }
 // }
-
-// class GeneratorPage extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     var appState = context.watch<MyAppState>();
-//     var pair = appState.current;
-
-//     IconData icon;
-//     if (appState.favorites.contains(pair)) {
-//       icon = Icons.favorite;
-//     } else {
-//       icon = Icons.favorite_border;
-//     }
-
-//     return Center(
-//       child: Column(
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         children: [
-//           BigCard(pair: pair),
-//           SizedBox(height: 10),
-//           Row(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               ElevatedButton.icon(
-//                 onPressed: () {
-//                   appState.toggleFavorite();
-//                 },
-//                 icon: Icon(icon),
-//                 label: Text('Like'),
-//               ),
-//               SizedBox(width: 10),
-//               ElevatedButton(
-//                 onPressed: () {
-//                   appState.getNext();
-//                 },
-//                 child: Text('Next'),
-//               ),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-// // ...
-
-// class BigCard extends StatelessWidget {
-//   const BigCard({
-//     super.key,
-//     required this.pair,
-//   });
-
-//   final WordPair pair;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final theme = Theme.of(context); // ← Add this.
-//     final style = theme.textTheme.displayMedium!.copyWith(
-//       color: theme.colorScheme.onPrimary,
-//     );
-
-//     return Card(
-//       color: Color(0x8316D516), // ← And also this.
-//       child: Padding(
-//         padding: const EdgeInsets.all(20),
-//         child: Text(
-//           pair.asLowerCase,
-//           style: style,
-//           semanticsLabel: "${pair.first} ${pair.second}",
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// ...
