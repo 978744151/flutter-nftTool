@@ -5,15 +5,12 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 // import 'dart:io' show Platform; // 用于检测平台
 
-import 'package:go_router/go_router.dart';
-import '/pages/home_page.dart';
-// import '/pages/shop_page.dart';
-import '/pages/message_page.dart';
-import '/pages/mine_page.dart';
+import 'router/router.dart'; // 添加这行
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
- // 强制设置 WebViewPlatform 实现
+  // 强制设置 WebViewPlatform 实现
   if (WebViewPlatform.instance == null) {
     // 如果是 iOS 模拟器或设备，优先使用 WebKitWebView
     // if (Platform.isIOS || Platform.isMacOS) { // macOS 上运行 iOS 模拟器
@@ -30,34 +27,15 @@ void main() {
   runApp(MyApp());
 }
 
-final GoRouter router = GoRouter(
-  routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => HomePage(),
-    ),
-    //  GoRoute(
-    //    path: '/shop',
-    //    builder: (context, state) => ShopPage(),
-    //  ),
-    GoRoute(
-      path: '/message',
-      builder: (context, state) => MessagePage(),
-    ),
-    GoRoute(
-      path: '/mine',
-      builder: (context, state) => MinePage(),
-    ),
-  ],
-);
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
       routerConfig: router,
-      title: 'My App',
+      title: 'NFT ONCE',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white, // 设置默认背景颜色为白色
       ),
     );
   }

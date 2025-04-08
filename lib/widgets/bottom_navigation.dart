@@ -17,7 +17,7 @@ class CustomBottomNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -30,7 +30,7 @@ class CustomBottomNavigation extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        // borderRadius: BorderRadius.circular(24),
         child: BottomNavigationBar(
           currentIndex: currentIndex,
           onTap: (index) {
@@ -38,16 +38,16 @@ class CustomBottomNavigation extends StatelessWidget {
 
             switch (index) {
               case 0:
-                context.go('/');
+                context.go('/', extra: {'animate': false});
                 break;
               case 1:
-                context.go('/shop');
+                context.go('/shop', extra: {'animate': false});
                 break;
               case 2:
-                context.go('/message');
+                context.go('/message', extra: {'animate': false});
                 break;
               case 3:
-                context.go('/mine');
+                context.go('/mine', extra: {'animate': false});
                 break;
               default:
                 return;
@@ -88,4 +88,4 @@ class CustomBottomNavigation extends StatelessWidget {
       ),
     );
   }
-} 
+}

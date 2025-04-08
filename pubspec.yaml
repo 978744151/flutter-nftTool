@@ -1,4 +1,4 @@
-name: namer_app
+name: NFTONCE
 description: A new Flutter project.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -18,6 +18,10 @@ dependencies:
   webview_flutter: ^4.7.0
   webview_flutter_android: ^3.16.0  # For Android
   webview_flutter_wkwebview: ^3.13.0  # For iOS
+  intl: ^0.18.1  # 添加这一行
+  flutter_svg: ^2.0.17
+
+
 
 dev_dependencies:
   flutter_test:

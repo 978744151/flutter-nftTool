@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/bottom_navigation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'blog_detail_page.dart';
 
 class Blog {
   final String id;
@@ -61,11 +63,10 @@ class _MessagePageState extends State<MessagePage> {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        
-        if (jsonData['success'] == true && 
-            jsonData['data'] != null && 
+
+        if (jsonData['success'] == true &&
+            jsonData['data'] != null &&
             jsonData['data']['success'] == true) {
-          
           final List<dynamic> blogsData = jsonData['data']['data'];
           setState(() {
             blogs = blogsData.map((item) => Blog.fromJson(item)).toList();
@@ -92,7 +93,7 @@ class _MessagePageState extends State<MessagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      // backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
@@ -170,20 +171,19 @@ class _TabItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFFE6F7FF) : Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isActive ? const Color(0xFF1890FF) : const Color(0xFF8C8C8C),
-          fontSize: 14,
-          fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFFE6F7FF) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
-      ),
-    );
+        child: Text(
+          text,
+          style: TextStyle(
+            color: isActive ? const Color(0xFF1890FF) : const Color(0xFF8C8C8C),
+            fontSize: 14,
+            fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
+          ),
+        ));
   }
 }
 
@@ -211,99 +211,118 @@ class MessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: const Color(0xFFE6F7FF),
-                  child: avatar.isEmpty
-                      ? const Icon(Icons.person, color: Color(0xFF1890FF))
-                      : null,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        time,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
+    return GestureDetector(
+      onTap: () {
+        // context.go('/');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BlogDetailPage(
+              title: title,
+              content: content,
+              author: name,
+              time: time,
+              type: type,
+            ),
+          ),
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: const Color(0xFFE6F7FF),
+                    child: avatar.isEmpty
+                        ? const Icon(Icons.person, color: Color(0xFF1890FF))
+                        : null,
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE6F7FF),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    type,
-                    style: const TextStyle(
-                      color: Color(0xFF1890FF),
-                      fontSize: 12,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          time,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE6F7FF),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      type,
+                      style: const TextStyle(
+                        color: Color(0xFF1890FF),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              content,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                _ActionButton(
-                  icon: Icons.thumb_up_outlined,
-                  count: likes,
-                  onPressed: () {},
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: 24),
-                _ActionButton(
-                  icon: Icons.comment_outlined,
-                  count: comments,
-                  onPressed: () {},
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.more_horiz, color: Color(0xFF8C8C8C)),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                content,
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  _ActionButton(
+                    icon: Icons.thumb_up_outlined,
+                    count: likes,
+                    onPressed: () {},
+                  ),
+                  const SizedBox(width: 24),
+                  _ActionButton(
+                    icon: Icons.comment_outlined,
+                    count: comments,
+                    onPressed: () {},
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon:
+                        const Icon(Icons.more_horiz, color: Color(0xFF8C8C8C)),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
