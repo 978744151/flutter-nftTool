@@ -24,7 +24,7 @@ class Blog {
 
   factory Blog.fromJson(Map<String, dynamic> json) {
     return Blog(
-      id: json['id'] ?? '',
+      id: json['_id'] ?? '',
       title: json['title'] ?? '',
       content: json['content'] ?? '',
       createName: json['createName'] ?? '',
@@ -83,7 +83,6 @@ class _MessagePageState extends State<MessagePage> {
         });
       }
     } catch (e) {
-      print('Error fetching blogs: $e');
       setState(() {
         isLoading = false;
       });
@@ -142,6 +141,7 @@ class _MessagePageState extends State<MessagePage> {
                           type: blog.type,
                           likes: 0,
                           comments: 0,
+                          id: blog.id,
                         );
                       },
                     ),
@@ -188,6 +188,7 @@ class _TabItem extends StatelessWidget {
 }
 
 class MessageCard extends StatelessWidget {
+  final String id; // 添加 id 参数
   final String avatar;
   final String name;
   final String title;
@@ -207,25 +208,14 @@ class MessageCard extends StatelessWidget {
     required this.type,
     required this.likes,
     required this.comments,
+    required this.id,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // context.go('/');
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BlogDetailPage(
-              title: title,
-              content: content,
-              author: name,
-              time: time,
-              type: type,
-            ),
-          ),
-        );
+        context.go('/message/$id');
       },
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

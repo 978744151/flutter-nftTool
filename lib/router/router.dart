@@ -4,6 +4,7 @@ import '../pages/home_page.dart';
 import '../pages/shop_page.dart';
 import '../pages/message_page.dart';
 import '../pages/mine_page.dart';
+import '../pages/blog_detail_page.dart';
 
 final router = GoRouter(
   routes: [
@@ -32,6 +33,15 @@ final router = GoRouter(
             key: state.pageKey,
             child: const MessagePage(),
           ),
+        ),
+        GoRoute(
+          path: '/message/:id',
+          builder: (context, state) {
+            final id = state.pathParameters['id']!; // 使用非空断言，因为我们确定 id 参数存在
+            return BlogDetailPage(
+              id: id,
+            );
+          },
         ),
         GoRoute(
           path: '/mine',
