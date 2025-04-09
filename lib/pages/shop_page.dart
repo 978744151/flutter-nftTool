@@ -1,50 +1,397 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom_navigation.dart';
-import '../pages/web_view_page.dart';
 
-class ShopPage extends StatelessWidget {
+import '../widgets/bottom_navigation.dart';
+import '../models/nft_category.dart';
+import '../models/nft.dart';
+import '../services/nft_service.dart';
+
+class ShopPage extends StatefulWidget {
+  @override
+  State<ShopPage> createState() => _ShopPageState();
+}
+
+class _ShopPageState extends State<ShopPage> {
+  bool _isGridView = true; // 添加这行
+
+  List<NFTCategory> categories = [];
+  List<NFT> nfts = [];
+  bool isLoading = true;
+  String currentCategory = '';
+  int currentPage = 1;
+  final int perPage = 10;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCategories();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      fetchNFTs(loadMore: true);
+    }
+  }
+
+  Future<void> fetchCategories() async {
+    try {
+      final categories = await NFTService.getCategories();
+      setState(() {
+        this.categories = categories;
+        if (categories.isNotEmpty) {
+          currentCategory = categories[0].id;
+          fetchNFTs();
+        }
+      });
+    } catch (e) {
+      print('获取分类失败: $e');
+    }
+  }
+
+  Future<void> fetchNFTs({bool loadMore = false}) async {
+    if (!loadMore) {
+      currentPage = 1;
+    }
+    try {
+      final nftList = await NFTService.getNFTs(
+        category: currentCategory,
+        page: currentPage,
+        perPage: perPage,
+      );
+      setState(() {
+        print('获取NFT成功: $nftList');
+        if (loadMore) {
+          nfts.addAll(nftList);
+          currentPage++;
+        } else {
+          nfts = nftList;
+        }
+        isLoading = false;
+      });
+    } catch (e) {
+      print('获取NFT失败: $e');
+      setState(() => isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // 在页面加载后自动打开 WebView
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => WebViewPage(
-            url: 'http://8.155.53.210/#/nft/digitalCollectionPage',
-            title: '数字藏品',
-          ),
-        ),
-      );
-    });
-
     return Scaffold(
-      appBar: AppBar(title: Text('藏品')),
-      body: Center(
-          //  child: Column(
-          //    mainAxisAlignment: MainAxisAlignment.center,
-          //    children: [
-          //      Text('加载数字藏品页面...'),
-          //      SizedBox(height: 20),
-          //      ElevatedButton(
-          //        onPressed: () {
-          //          // 手动打开 WebView 的按钮
-          //          Navigator.of(context).push(
-          //            MaterialPageRoute(
-          //              builder: (context) => WebViewPage(
-          //                url: 'http://8.155.53.210/#/nft/digitalCollectionPage',
-          //                title: '数字藏品',
-          //              ),
-          //            ),
-          //          );
-          //        },
-          //        child: Text('打开数字藏品'),
-          //      ),
-          //    ],
-          //  ),
-          ),
-      bottomNavigationBar: const CustomBottomNavigation(
-        currentIndex: 1, // 当前是藏品页
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: '搜索藏品名称',
+                    prefixIcon: Icon(Icons.search, color: Colors.grey),
+                    border: InputBorder.none,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                ),
+              ),
+            ),
+            PopupMenuButton<String>(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    Text('按热度',
+                        style: TextStyle(color: Colors.black87, fontSize: 14)),
+                    Icon(Icons.arrow_drop_down, color: Colors.black87),
+                  ],
+                ),
+              ),
+              onSelected: (String value) {
+                // 处理排序选择
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(
+                  value: 'hot',
+                  child: Text('按热度'),
+                ),
+                PopupMenuItem<String>(
+                  value: 'price',
+                  child: Text('按价格'),
+                ),
+                PopupMenuItem<String>(
+                  value: 'latest',
+                  child: Text('最新挂单'),
+                ),
+              ],
+            ),
+            IconButton(
+              icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+              onPressed: () {
+                setState(() {
+                  _isGridView = !_isGridView;
+                });
+              },
+            ),
+          ],
+        ),
       ),
+      body: Column(
+        children: [
+          // 分类列表
+          Container(
+            height: 40,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: categories.length,
+              itemBuilder: (context, index) {
+                final category = categories[index];
+                final isSelected = category.id == currentCategory;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      currentCategory = category.id;
+                      isLoading = true;
+                      fetchNFTs();
+                    });
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    margin: EdgeInsets.only(left: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.blue : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      category.name,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // NFT列表
+          Expanded(
+            child: isLoading
+                ? Center(child: CircularProgressIndicator())
+                : _isGridView
+                    ? GridView.builder(
+                        controller: _scrollController,
+                        padding: EdgeInsets.all(8),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: nfts.length,
+                        itemBuilder: (context, index) {
+                          final nft = nfts[index];
+                          return Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(16),
+                                          topRight: Radius.circular(16),
+                                        ),
+                                        color: Colors.white,
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(16),
+                                          topRight: Radius.circular(16),
+                                        ),
+                                        child: Image.network(
+                                          nft.imageUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Container(
+                                            color: Colors.grey[100],
+                                            child: const Icon(
+                                              Icons.image_not_supported,
+                                              color: Colors.grey,
+                                              size: 40,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          nft.name,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.2,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              '¥${nft.price}',
+                                              style: const TextStyle(
+                                                color: Color(0xFFFF4D4F),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[100],
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                '库存 ${nft.stock}',
+                                                style: TextStyle(
+                                                  color: Colors.grey[600],
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        controller: _scrollController,
+                        itemCount: nfts.length,
+                        itemBuilder: (context, index) {
+                          final nft = nfts[index];
+                          return Card(
+                            color: Colors.white,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            elevation: 0.5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  // 图片
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: Image.network(
+                                      nft.imageUrl,
+                                      width: 80,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Container(
+                                        width: 80,
+                                        height: 60,
+                                        color: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.image_not_supported,
+                                          color: Colors.grey,
+                                          size: 24,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  // 标题和库存
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          nft.name,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '数量: ${nft.stock}',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // 价格
+                                  Text(
+                                    '¥${nft.price}',
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: CustomBottomNavigation(currentIndex: 1),
     );
   }
 }

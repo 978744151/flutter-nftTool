@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../pages/home_page.dart';
 import '../pages/shop_page.dart';
 import '../pages/message_page.dart';
 import '../pages/mine_page.dart';
 import '../pages/blog_detail_page.dart';
+import '../pages/login_page.dart';
 
 final router = GoRouter(
   routes: [
@@ -18,6 +18,13 @@ final router = GoRouter(
           pageBuilder: (context, state) => NoTransitionPage<void>(
             key: state.pageKey,
             child: HomePage(),
+          ),
+        ),
+        GoRoute(
+          path: '/login',
+          pageBuilder: (context, state) => NoTransitionPage<void>(
+            key: state.pageKey,
+            child: LoginPage(),
           ),
         ),
         GoRoute(
