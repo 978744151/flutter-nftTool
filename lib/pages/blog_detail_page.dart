@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
 import '../config/nft_api.dart';
 import '../config/api.dart'; // 添加这行
 import 'package:intl/intl.dart'; // 添加这行
@@ -67,51 +69,69 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
   }
 
   Future<void> fetchBlogDetail() async {
-    final response = await Api.get(NftApi.getBlogDetail(widget.id));
-    if (response['success'] != false) {
-      setState(() {
-        blogInfo = BlogInfo.fromJson(response['data'] ?? {});
-      });
+    if (!mounted) return;
+
+    try {
+      final response = await Api.get(NftApi.getBlogDetail(widget.id));
+      if (!mounted) return; // Check mounted again after await
+
+      if (response['success'] != false) {
+        setState(() {
+          blogInfo = BlogInfo.fromJson(response['data'] ?? {});
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      // Handle error if needed
     }
   }
 
   Future<void> fetchComments() async {
-    final response = await Api.post(
-      NftApi.getComments,
-      data: {
-        'blogId': widget.id, // 传入博客 ID
-      },
-    );
-    if (response['success'] != false) {
-      final List<dynamic> data = response['data'] ?? [];
-      setState(() {
-        comments = data.map((item) {
-          final List<Comment> replies =
-              (item['replies'] as List<dynamic>? ?? [])
-                  .map((reply) => Comment(
-                      author: reply['user']['name'] ?? '',
-                      content: reply['content'] ?? '',
-                      time: formatDateTime(reply['createdAt'] ?? ''),
-                      avatar: reply['user']['avatar'] ?? '',
-                      isReply: true,
-                      toUserName: reply['toUserName'] ?? '',
-                      user: reply['user'] ?? {}))
-                  //   Users(
-                  //       data: reply['user'] ?? {}), // Create Users object
-                  // ))
-                  .toList();
-          return Comment(
-              author: item['user']['name'] ?? '',
-              content: item['content'] ?? '',
-              time: formatDateTime(item['createdAt'] ?? ''),
-              avatar: item['user']['avatar'] ?? '',
-              isReply: false,
-              replies: replies,
-              toUserName: item['toUserName'] ?? '',
-              user: item['user'] ?? {} // Create Users object
-              );
-        }).toList();
-      });
+    if (!mounted) return;
+
+    try {
+      final response = await Api.post(
+        NftApi.getComments,
+        data: {
+          'blogId': widget.id,
+        },
+      );
+      if (!mounted) return; // Check mounted again after await
+
+      if (response['success'] != false) {
+        final List<dynamic> data = response['data'] ?? [];
+        setState(() {
+          comments = data.map((item) {
+            final List<Comment> replies =
+                (item['replies'] as List<dynamic>? ?? [])
+                    .map((reply) => Comment(
+                        author: reply['user']['name'] ?? '',
+                        content: reply['content'] ?? '',
+                        time: formatDateTime(reply['createdAt'] ?? ''),
+                        avatar: reply['user']['avatar'] ?? '',
+                        isReply: true,
+                        toUserName: reply['toUserName'] ?? '',
+                        user: reply['user'] ?? {}))
+                    //   Users(
+                    //       data: reply['user'] ?? {}), // Create Users object
+                    // ))
+                    .toList();
+            return Comment(
+                author: item['user']['name'] ?? '',
+                content: item['content'] ?? '',
+                time: formatDateTime(item['createdAt'] ?? ''),
+                avatar: item['user']['avatar'] ?? '',
+                isReply: false,
+                replies: replies,
+                toUserName: item['toUserName'] ?? '',
+                user: item['user'] ?? {} // Create Users object
+                );
+          }).toList();
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      // Handle error if needed
     }
   }
 
@@ -125,12 +145,25 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        // 在 AppBar 中修改返回按钮的处理
+
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/message');
+            }
+            // if (Navigator.canPop(context)) {
+            //   // 添加检查
+            //   Navigator.pop(context);
+            // }
+          },
         ),
+
         title: Row(
           children: [
             SvgPicture.network(

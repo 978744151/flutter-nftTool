@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../widgets/bottom_navigation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'blog_detail_page.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class Blog {
@@ -42,17 +41,25 @@ class MessagePage extends StatefulWidget {
   State<MessagePage> createState() => _MessagePageState();
 }
 
-class _MessagePageState extends State<MessagePage> {
+class _MessagePageState extends State<MessagePage>
+    with AutomaticKeepAliveClientMixin {
   List<Blog> blogs = [];
   bool isLoading = true;
+  final PageController _pageController = PageController();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
+    // 移除 WidgetsBinding，直接调用
     fetchBlogs();
   }
 
   Future<void> fetchBlogs() async {
+    if (!mounted) return;
+
     setState(() {
       isLoading = true;
     });
@@ -62,9 +69,10 @@ class _MessagePageState extends State<MessagePage> {
         Uri.parse('http://8.155.53.210:3000/api/v1/blogs?page=1'),
       );
 
+      if (!mounted) return; // 再次检查mounted状态
+
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-
         if (jsonData['success'] == true &&
             jsonData['data'] != null &&
             jsonData['data']['success'] == true) {
@@ -73,17 +81,10 @@ class _MessagePageState extends State<MessagePage> {
             blogs = blogsData.map((item) => Blog.fromJson(item)).toList();
             isLoading = false;
           });
-        } else {
-          setState(() {
-            isLoading = false;
-          });
         }
-      } else {
-        setState(() {
-          isLoading = false;
-        });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -92,6 +93,7 @@ class _MessagePageState extends State<MessagePage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // 必须调用
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 242, 238, 238), // 取消注释并设置为白色
       // backgroundColor: const Color(0xFFF5F5F5),
@@ -152,6 +154,7 @@ class _MessagePageState extends State<MessagePage> {
                           likes: 0,
                           comments: 0,
                           height: randomHeight,
+                          id: blog.id,
                         );
                       },
                     ),
@@ -162,9 +165,9 @@ class _MessagePageState extends State<MessagePage> {
         child: const Icon(Icons.add, color: Colors.white),
         elevation: 2,
       ),
-      bottomNavigationBar: CustomBottomNavigation(
-        currentIndex: 2,
-      ),
+      // bottomNavigationBar: CustomBottomNavigation(
+      //   currentIndex: 2,
+      // ),
     );
   }
 }
@@ -225,7 +228,7 @@ class MessageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.go('/message/$id');
+        context.push('/message/$id');
       },
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -367,6 +370,7 @@ class RedBookCard extends StatelessWidget {
   final String title;
   final String content;
   final String time;
+  final String id;
   final String type;
   final int likes;
   final int comments;
@@ -375,6 +379,7 @@ class RedBookCard extends StatelessWidget {
   const RedBookCard({
     super.key,
     required this.avatar,
+    required this.id,
     required this.name,
     required this.title,
     required this.content,
@@ -384,8 +389,6 @@ class RedBookCard extends StatelessWidget {
     required this.comments,
     this.height = 180, // Default height
   });
-
-  get id => null;
 
   @override
   Widget build(BuildContext context) {

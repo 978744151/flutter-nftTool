@@ -10,8 +10,12 @@ class ShopPage extends StatefulWidget {
   State<ShopPage> createState() => _ShopPageState();
 }
 
-class _ShopPageState extends State<ShopPage> {
-  bool _isGridView = true; // 添加这行
+class _ShopPageState extends State<ShopPage>
+    with AutomaticKeepAliveClientMixin {
+  bool _isGridView = true;
+
+  @override
+  bool get wantKeepAlive => true; // 添加这行
 
   List<NFTCategory> categories = [];
   List<NFT> nfts = [];
@@ -84,6 +88,7 @@ class _ShopPageState extends State<ShopPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // 必须调用父类的 build 方法
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -391,7 +396,7 @@ class _ShopPageState extends State<ShopPage> {
           ),
         ],
       ),
-      bottomNavigationBar: CustomBottomNavigation(currentIndex: 1),
+      // bottomNavigationBar: CustomBottomNavigation(currentIndex: 1),
     );
   }
 }

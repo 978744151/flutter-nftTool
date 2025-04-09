@@ -1,34 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/bottom_navigation.dart';
+// import '../widgets/bottom_navigation.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context); // 必须调用 super.build
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: AppBar(
-      //   backgroundColor: Colors.white,
-      //   elevation: 0,
-      //   title: Text(
-      //     '幻境',
-      //     style: TextStyle(color: Colors.black87, fontSize: 16),
-      //   ),
-      //   actions: [
-      //     Padding(
-      //       padding: const EdgeInsets.only(right: 16.0),
-      //       child: Row(
-      //         children: [
-      //           Text(
-      //             'G******',
-      //             style: TextStyle(color: Colors.black54, fontSize: 14),
-      //           ),
-      //           Icon(Icons.keyboard_arrow_down, color: Colors.black54),
-      //         ],
-      //       ),
-      //     )
-      //   ],
-      // ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -54,7 +44,7 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // 页面指示器
             Container(
               padding: EdgeInsets.symmetric(vertical: 16),
@@ -69,35 +59,23 @@ class HomePage extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // 功能区块
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildFunctionCard(
-                    context, 
-                    'assets/images/icon1.png', 
-                    '鱼写论坛', 
-                    () => print('鱼写论坛')
-                  ),
-                  _buildFunctionCard(
-                    context, 
-                    'assets/images/icon2.png', 
-                    '数字藏品', 
-                    () => context.go('/shop')
-                  ),
-                  _buildFunctionCard(
-                    context, 
-                    'assets/images/icon3.png', 
-                    '公告管理', 
-                    () => print('公告管理')
-                  ),
+                  _buildFunctionCard(context, 'assets/images/icon1.png', '鱼写论坛',
+                      () => print('鱼写论坛')),
+                  _buildFunctionCard(context, 'assets/images/icon2.png', '数字藏品',
+                      () => context.go('/shop')),
+                  _buildFunctionCard(context, 'assets/images/icon3.png', '公告管理',
+                      () => print('公告管理')),
                 ],
               ),
             ),
-            
+
             // 最新文章区域
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
@@ -121,12 +99,27 @@ class HomePage extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // 文章列表
             _buildArticleCard(
               '你们好呀',
               '@蜗牛勇',
               '2025-03-28 17:34:49',
+            ),
+            _buildArticleCard(
+              '哈哈哈哈',
+              '@蜗牛勇',
+              '2025-03-28 18:53:31',
+            ),
+            _buildArticleCard(
+              '哈哈哈哈',
+              '@蜗牛勇',
+              '2025-03-28 18:53:31',
+            ),
+            _buildArticleCard(
+              '哈哈哈哈',
+              '@蜗牛勇',
+              '2025-03-28 18:53:31',
             ),
             _buildArticleCard(
               '哈哈哈哈',
@@ -141,13 +134,14 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.blue,
         child: Icon(Icons.add),
       ),
-      bottomNavigationBar: CustomBottomNavigation(
-        currentIndex: 0,
-      ),
+      // bottomNavigationBar: CustomBottomNavigation(
+      //   currentIndex: 0,
+      // ),
     );
   }
-  
-  Widget _buildFunctionCard(BuildContext context, String imagePath, String title, VoidCallback onTap) {
+
+  Widget _buildFunctionCard(BuildContext context, String imagePath,
+      String title, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -187,7 +181,7 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildArticleCard(String title, String author, String time) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
