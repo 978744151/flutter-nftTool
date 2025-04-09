@@ -151,7 +151,6 @@ class _MessagePageState extends State<MessagePage> {
                           type: blog.type,
                           likes: 0,
                           comments: 0,
-                          id: blog.id,
                           height: randomHeight,
                         );
                       },
@@ -385,6 +384,8 @@ class RedBookCard extends StatelessWidget {
     required this.comments,
     this.height = 180, // Default height
   });
+
+  get id => null;
 
   @override
   Widget build(BuildContext context) {
