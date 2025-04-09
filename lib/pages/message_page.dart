@@ -4,6 +4,7 @@ import '../widgets/bottom_navigation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'blog_detail_page.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class Blog {
   final String id;
@@ -93,6 +94,7 @@ class _MessagePageState extends State<MessagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 242, 238, 238), // 取消注释并设置为白色
       // backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         elevation: 0,
@@ -128,12 +130,20 @@ class _MessagePageState extends State<MessagePage> {
               onRefresh: fetchBlogs,
               child: blogs.isEmpty
                   ? const Center(child: Text('暂无数据'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 90),
+                  : MasonryGridView.count(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      padding: const EdgeInsets.all(8),
                       itemCount: blogs.length,
                       itemBuilder: (context, index) {
                         final blog = blogs[index];
-                        return MessageCard(
+                        // 根据内容长度动态计算高度
+                        final contentLength =
+                            blog.title.length + blog.content.length;
+                        final randomHeight = 160.0 + (contentLength % 3) * 40;
+
+                        return RedBookCard(
                           avatar: '',
                           name: blog.createName,
                           title: blog.title,
@@ -142,6 +152,7 @@ class _MessagePageState extends State<MessagePage> {
                           type: blog.type,
                           likes: 0,
                           comments: 0,
+                          height: randomHeight,
                         );
                       },
                     ),
@@ -356,6 +367,120 @@ class _ActionButton extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class RedBookCard extends StatelessWidget {
+  final String avatar;
+  final String name;
+  final String title;
+  final String content;
+  final String time;
+  final String type;
+  final int likes;
+  final int comments;
+  final double height; // Add this parameter
+
+  const RedBookCard({
+    super.key,
+    required this.avatar,
+    required this.name,
+    required this.title,
+    required this.content,
+    required this.time,
+    required this.type,
+    required this.likes,
+    required this.comments,
+    this.height = 180, // Default height
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BlogDetailPage(
+              title: title,
+              content: content,
+              author: name,
+              time: time,
+              type: type,
+            ),
+          ),
+        );
+      },
+      child: Card(
+        color: Colors.white,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: height,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(8)),
+              ),
+              child: const Center(
+                child: Icon(Icons.image, size: 40, color: Colors.grey),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 10,
+                        backgroundColor: const Color(0xFFE6F7FF),
+                        child: avatar.isEmpty
+                            ? const Icon(Icons.person,
+                                color: Color(0xFF1890FF), size: 14)
+                            : null,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 11),
+                        ),
+                      ),
+                      const Icon(Icons.favorite_border, size: 14),
+                      const SizedBox(width: 2),
+                      Text(
+                        likes.toString(),
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
