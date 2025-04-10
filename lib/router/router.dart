@@ -5,59 +5,62 @@ import '../pages/message_page.dart';
 import '../pages/mine_page.dart';
 import '../pages/blog_detail_page.dart';
 import '../pages/login_page.dart';
+import '../widgets/keep_alive_wrapper.dart';
+import '../pages/shell_page.dart';
 
 final router = GoRouter(
+  initialLocation: '/',
   routes: [
-    ShellRoute(
-      builder: (context, state, child) {
-        return child;
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return ShellPage(navigationShell: navigationShell);
       },
-      routes: [
-        GoRoute(
-          path: '/',
-          pageBuilder: (context, state) => NoTransitionPage<void>(
-            key: state.pageKey,
-            child: HomePage(),
-          ),
+      branches: [
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) => const HomePage(),
+            ),
+          ],
         ),
-        GoRoute(
-          path: '/login',
-          pageBuilder: (context, state) => NoTransitionPage<void>(
-            key: state.pageKey,
-            child: LoginPage(),
-          ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/shop',
+              builder: (context, state) => ShopPage(),
+            ),
+          ],
         ),
-        GoRoute(
-          path: '/shop',
-          pageBuilder: (context, state) => NoTransitionPage<void>(
-            key: state.pageKey,
-            child: ShopPage(),
-          ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/message',
+              builder: (context, state) => const MessagePage(),
+            ),
+          ],
         ),
-        GoRoute(
-          path: '/message',
-          pageBuilder: (context, state) => NoTransitionPage<void>(
-            key: state.pageKey,
-            child: const MessagePage(),
-          ),
-        ),
-        GoRoute(
-          path: '/message/:id',
-          builder: (context, state) {
-            final id = state.pathParameters['id']!; // 使用非空断言，因为我们确定 id 参数存在
-            return BlogDetailPage(
-              id: id,
-            );
-          },
-        ),
-        GoRoute(
-          path: '/mine',
-          pageBuilder: (context, state) => NoTransitionPage<void>(
-            key: state.pageKey,
-            child: MinePage(),
-          ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/mine',
+              builder: (context, state) => MinePage(),
+            ),
+          ],
         ),
       ],
+    ),
+    // 其他非 tab 页面的路由
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      path: '/message/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return BlogDetailPage(id: id);
+      },
     ),
   ],
 );
