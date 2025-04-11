@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import '../utils/http_client.dart';
 
 class Blog {
   final String id;
@@ -70,25 +70,20 @@ class _MessagePageState extends State<MessagePage>
     });
 
     try {
-      final response = await http.get(
-        Uri.parse('http://8.155.53.210:3000/api/v1/blogs?page=1'),
-      );
+      final response = await HttpClient.get('/blogs?page=1');
 
       if (!mounted) return; // 再次检查mounted状态
-
-      if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
-        if (jsonData['success'] == true &&
-            jsonData['data'] != null &&
-            jsonData['data']['success'] == true) {
-          final List<dynamic> blogsData = jsonData['data']['data'];
-          setState(() {
-            blogs = blogsData.map((item) => Blog.fromJson(item)).toList();
-            isLoading = false;
-          });
-        }
+      print(response);
+      if (response['success']) {
+        final List<dynamic> blogsData = response['data']['data'] ?? [];
+        print(blogsData.map((item) => Blog.fromJson(item)).toList());
+        setState(() {
+          blogs = blogsData.map((item) => Blog.fromJson(item)).toList();
+          isLoading = false;
+        });
       }
     } catch (e) {
+      print('Error fetching blogs: $e');
       if (!mounted) return;
       setState(() {
         isLoading = false;
@@ -130,42 +125,47 @@ class _MessagePageState extends State<MessagePage>
           ],
         ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: fetchBlogs,
-              child: blogs.isEmpty
-                  ? const Center(child: Text('暂无数据'))
-                  : MasonryGridView.count(
-                      controller: _scrollController, // 添加控制器
-                      key: const PageStorageKey('message_grid'), // 添加 key 保存状态
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      padding: const EdgeInsets.all(8),
-                      itemCount: blogs.length,
-                      itemBuilder: (context, index) {
-                        final blog = blogs[index];
-                        // 根据内容长度动态计算高度
-                        final contentLength =
-                            blog.title.length + blog.content.length;
-                        final randomHeight = 160.0 + (contentLength % 3) * 40;
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: fetchBlogs,
+                child:
+                    blogs.isEmpty
+                        ? const Center(child: Text('暂无数据'))
+                        : MasonryGridView.count(
+                          controller: _scrollController, // 添加控制器
+                          key: const PageStorageKey(
+                            'message_grid',
+                          ), // 添加 key 保存状态
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          padding: const EdgeInsets.all(8),
+                          itemCount: blogs.length,
+                          itemBuilder: (context, index) {
+                            final blog = blogs[index];
+                            // 根据内容长度动态计算高度
+                            final contentLength =
+                                blog.title.length + blog.content.length;
+                            final randomHeight =
+                                160.0 + (contentLength % 3) * 40;
 
-                        return RedBookCard(
-                          avatar: '',
-                          name: blog.createName,
-                          title: blog.title,
-                          content: blog.content,
-                          time: blog.createdAt,
-                          type: blog.type,
-                          likes: 0,
-                          comments: 0,
-                          height: randomHeight,
-                          id: blog.id,
-                        );
-                      },
-                    ),
-            ),
+                            return RedBookCard(
+                              avatar: '',
+                              name: blog.createName,
+                              title: blog.title,
+                              content: blog.content,
+                              time: blog.createdAt,
+                              type: blog.type,
+                              likes: 0,
+                              comments: 0,
+                              height: randomHeight,
+                              id: blog.id,
+                            );
+                          },
+                        ),
+              ),
       // floatingActionButton: FloatingActionButton(
       //   onPressed: () {},
       //   backgroundColor: const Color(0xFF1890FF),
@@ -183,27 +183,25 @@ class _TabItem extends StatelessWidget {
   final String text;
   final bool isActive;
 
-  const _TabItem({
-    required this.text,
-    required this.isActive,
-  });
+  const _TabItem({required this.text, required this.isActive});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? const Color(0xFFE6F7FF) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isActive ? const Color(0xFFE6F7FF) : Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: isActive ? const Color(0xFF1890FF) : const Color(0xFF8C8C8C),
+          fontSize: 14,
+          fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isActive ? const Color(0xFF1890FF) : const Color(0xFF8C8C8C),
-            fontSize: 14,
-            fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
-          ),
-        ));
+      ),
+    );
   }
 }
 
@@ -240,9 +238,7 @@ class MessageCard extends StatelessWidget {
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -253,9 +249,10 @@ class MessageCard extends StatelessWidget {
                   CircleAvatar(
                     radius: 20,
                     backgroundColor: const Color(0xFFE6F7FF),
-                    child: avatar.isEmpty
-                        ? const Icon(Icons.person, color: Color(0xFF1890FF))
-                        : null,
+                    child:
+                        avatar.isEmpty
+                            ? const Icon(Icons.person, color: Color(0xFF1890FF))
+                            : null,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -280,8 +277,10 @@ class MessageCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE6F7FF),
                       borderRadius: BorderRadius.circular(4),
@@ -305,10 +304,7 @@ class MessageCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                content,
-                style: const TextStyle(fontSize: 14),
-              ),
+              Text(content, style: const TextStyle(fontSize: 14)),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -325,8 +321,10 @@ class MessageCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon:
-                        const Icon(Icons.more_horiz, color: Color(0xFF8C8C8C)),
+                    icon: const Icon(
+                      Icons.more_horiz,
+                      color: Color(0xFF8C8C8C),
+                    ),
                     onPressed: () {},
                   ),
                 ],
@@ -360,10 +358,7 @@ class _ActionButton extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             count.toString(),
-            style: const TextStyle(
-              color: Color(0xFF8C8C8C),
-              fontSize: 12,
-            ),
+            style: const TextStyle(color: Color(0xFF8C8C8C), fontSize: 12),
           ),
         ],
       ),
@@ -407,9 +402,7 @@ class RedBookCard extends StatelessWidget {
         color: Colors.white,
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -417,8 +410,9 @@ class RedBookCard extends StatelessWidget {
               height: height,
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F5F5),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(8)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(8),
+                ),
               ),
               child: const Center(
                 child: Icon(Icons.image, size: 40, color: Colors.grey),
@@ -444,10 +438,14 @@ class RedBookCard extends StatelessWidget {
                       CircleAvatar(
                         radius: 10,
                         backgroundColor: const Color(0xFFE6F7FF),
-                        child: avatar.isEmpty
-                            ? const Icon(Icons.person,
-                                color: Color(0xFF1890FF), size: 14)
-                            : null,
+                        child:
+                            avatar.isEmpty
+                                ? const Icon(
+                                  Icons.person,
+                                  color: Color(0xFF1890FF),
+                                  size: 14,
+                                )
+                                : null,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
