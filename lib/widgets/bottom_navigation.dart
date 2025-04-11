@@ -16,11 +16,7 @@ class CustomBottomNavigation extends StatelessWidget {
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: (index) {
-        if (index == 2) {
-          context.push('/create');
-        } else {
-          onTap?.call(index);
-        }
+        onTap?.call(index);
       },
       type: BottomNavigationBarType.fixed,
       backgroundColor: Colors.white,

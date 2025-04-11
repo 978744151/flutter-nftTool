@@ -14,7 +14,7 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(); // 添加这行
 
 final router = GoRouter(
   navigatorKey: _rootNavigatorKey, // 添加这行
-  initialLocation: '/',
+  initialLocation: '/message',
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -24,8 +24,18 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/',
+              path: '/message',
               builder: (context, state) => const MessagePage(),
+              routes: [
+                GoRoute(
+                  path: 'detail/:id', // 修改为子路由
+                  parentNavigatorKey: _rootNavigatorKey, // 添加这行
+                  builder: (context, state) {
+                    final id = state.pathParameters['id']!;
+                    return BlogDetailPage(id: id);
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -34,6 +44,14 @@ final router = GoRouter(
             GoRoute(
               path: '/shop',
               builder: (context, state) => ShopPage(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/create',
+              builder: (context, state) => CreateBlogPage(),
             ),
           ],
         ),
@@ -53,24 +71,6 @@ final router = GoRouter(
             ),
           ],
         ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/message',
-              builder: (context, state) => const MessagePage(),
-              routes: [
-                GoRoute(
-                  path: 'detail/:id', // 修改为子路由
-                  parentNavigatorKey: _rootNavigatorKey, // 添加这行
-                  builder: (context, state) {
-                    final id = state.pathParameters['id']!;
-                    return BlogDetailPage(id: id);
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
       ],
     ),
     // 将博客详情页移到这里
@@ -78,10 +78,6 @@ final router = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginPage(),
-    ),
-    GoRoute(
-      path: '/create',
-      builder: (context, state) => const CreateBlogPage(),
     ),
   ],
 );
