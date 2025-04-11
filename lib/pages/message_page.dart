@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:convert';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../utils/http_client.dart';
 
@@ -125,47 +124,44 @@ class _MessagePageState extends State<MessagePage>
           ],
         ),
       ),
-      body:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : RefreshIndicator(
-                onRefresh: fetchBlogs,
-                child:
-                    blogs.isEmpty
-                        ? const Center(child: Text('暂无数据'))
-                        : MasonryGridView.count(
-                          controller: _scrollController, // 添加控制器
-                          key: const PageStorageKey(
-                            'message_grid',
-                          ), // 添加 key 保存状态
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          padding: const EdgeInsets.all(8),
-                          itemCount: blogs.length,
-                          itemBuilder: (context, index) {
-                            final blog = blogs[index];
-                            // 根据内容长度动态计算高度
-                            final contentLength =
-                                blog.title.length + blog.content.length;
-                            final randomHeight =
-                                160.0 + (contentLength % 3) * 40;
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: fetchBlogs,
+              child: blogs.isEmpty
+                  ? const Center(child: Text('暂无数据'))
+                  : MasonryGridView.count(
+                      controller: _scrollController, // 添加控制器
+                      key: const PageStorageKey(
+                        'message_grid',
+                      ), // 添加 key 保存状态
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                      padding: const EdgeInsets.all(8),
+                      itemCount: blogs.length,
+                      itemBuilder: (context, index) {
+                        final blog = blogs[index];
+                        // 根据内容长度动态计算高度
+                        final contentLength =
+                            blog.title.length + blog.content.length;
+                        final randomHeight = 160.0 + (contentLength % 3) * 40;
 
-                            return RedBookCard(
-                              avatar: '',
-                              name: blog.createName,
-                              title: blog.title,
-                              content: blog.content,
-                              time: blog.createdAt,
-                              type: blog.type,
-                              likes: 0,
-                              comments: 0,
-                              height: randomHeight,
-                              id: blog.id,
-                            );
-                          },
-                        ),
-              ),
+                        return RedBookCard(
+                          avatar: '',
+                          name: blog.createName,
+                          title: blog.title,
+                          content: blog.content,
+                          time: blog.createdAt,
+                          type: blog.type,
+                          likes: 0,
+                          comments: 0,
+                          height: randomHeight,
+                          id: blog.id,
+                        );
+                      },
+                    ),
+            ),
       // floatingActionButton: FloatingActionButton(
       //   onPressed: () {},
       //   backgroundColor: const Color(0xFF1890FF),
@@ -249,10 +245,9 @@ class MessageCard extends StatelessWidget {
                   CircleAvatar(
                     radius: 20,
                     backgroundColor: const Color(0xFFE6F7FF),
-                    child:
-                        avatar.isEmpty
-                            ? const Icon(Icons.person, color: Color(0xFF1890FF))
-                            : null,
+                    child: avatar.isEmpty
+                        ? const Icon(Icons.person, color: Color(0xFF1890FF))
+                        : null,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -438,14 +433,13 @@ class RedBookCard extends StatelessWidget {
                       CircleAvatar(
                         radius: 10,
                         backgroundColor: const Color(0xFFE6F7FF),
-                        child:
-                            avatar.isEmpty
-                                ? const Icon(
-                                  Icons.person,
-                                  color: Color(0xFF1890FF),
-                                  size: 14,
-                                )
-                                : null,
+                        child: avatar.isEmpty
+                            ? const Icon(
+                                Icons.person,
+                                color: Color(0xFF1890FF),
+                                size: 14,
+                              )
+                            : null,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
