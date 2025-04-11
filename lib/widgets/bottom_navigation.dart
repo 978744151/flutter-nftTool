@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-// import '../pages/shop_page.dart';
-import '../pages/message_page.dart';
-import '../pages/mine_page.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -18,31 +15,52 @@ class CustomBottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: currentIndex,
-      onTap: onTap,
+      onTap: (index) {
+        if (index == 2) {
+          context.push('/create');
+        } else {
+          onTap?.call(index);
+        }
+      },
       type: BottomNavigationBarType.fixed,
       backgroundColor: Colors.white,
-      selectedItemColor: const Color(0xFF1890FF),
-      unselectedItemColor: Colors.grey,
+      selectedItemColor: const Color.fromARGB(255, 199, 46, 102),
+      unselectedItemColor: const Color.fromARGB(255, 54, 53, 53),
+      selectedLabelStyle: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+      unselectedLabelStyle: const TextStyle(
+        fontSize: 16,
+      ),
       elevation: 0,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          activeIcon: Icon(Icons.home),
+      items: [
+        // 移除 const
+        const BottomNavigationBarItem(
+          icon: SizedBox(),
           label: '首页',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.grid_view_outlined),
-          activeIcon: Icon(Icons.grid_view),
+        const BottomNavigationBarItem(
+          icon: SizedBox(),
           label: '藏品',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.message_outlined),
-          activeIcon: Icon(Icons.message),
+          icon: SizedBox(
+            height: 20, // 与文字高度一致
+            child: Icon(
+              Icons.add_circle_outline,
+              size: 40,
+              color: Color.fromARGB(255, 199, 46, 102),
+            ),
+          ),
+          label: '',
+        ),
+        const BottomNavigationBarItem(
+          icon: SizedBox(),
           label: '社区',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          activeIcon: Icon(Icons.person),
+        const BottomNavigationBarItem(
+          icon: SizedBox(),
           label: '我的',
         ),
       ],

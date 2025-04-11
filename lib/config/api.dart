@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'nft_api.dart';
+import 'comment_api.dart';
 
 class ApiConfig {
   static const String baseUrl = 'http://8.155.53.210:3000/api/v1';

@@ -130,9 +130,12 @@ class _HomePageState extends State<HomePage>
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.blue,
+        onPressed: () {
+          context.go('/create');
+        },
+        // backgroundColor: Colors.blue,
         child: Icon(Icons.add),
+        // mini:true
       ),
       // bottomNavigationBar: CustomBottomNavigation(
       //   currentIndex: 0,

@@ -45,7 +45,13 @@ class _MessagePageState extends State<MessagePage>
     with AutomaticKeepAliveClientMixin {
   List<Blog> blogs = [];
   bool isLoading = true;
-  final PageController _pageController = PageController();
+  final ScrollController _scrollController = ScrollController(); // 添加滚动控制器
+
+  @override
+  void dispose() {
+    _scrollController.dispose(); // 记得释放
+    super.dispose();
+  }
 
   @override
   bool get wantKeepAlive => true;
@@ -132,6 +138,8 @@ class _MessagePageState extends State<MessagePage>
               child: blogs.isEmpty
                   ? const Center(child: Text('暂无数据'))
                   : MasonryGridView.count(
+                      controller: _scrollController, // 添加控制器
+                      key: const PageStorageKey('message_grid'), // 添加 key 保存状态
                       crossAxisCount: 2,
                       mainAxisSpacing: 8,
                       crossAxisSpacing: 8,
@@ -159,12 +167,12 @@ class _MessagePageState extends State<MessagePage>
                       },
                     ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: const Color(0xFF1890FF),
-        child: const Icon(Icons.add, color: Colors.white),
-        elevation: 2,
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {},
+      //   backgroundColor: const Color(0xFF1890FF),
+      //   child: const Icon(Icons.add, color: Colors.white),
+      //   elevation: 2,
+      // ),
       // bottomNavigationBar: CustomBottomNavigation(
       //   currentIndex: 2,
       // ),
@@ -394,7 +402,7 @@ class RedBookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.go('/message/$id');
+        context.go('/message/detail/$id');
       },
       child: Card(
         color: Colors.white,

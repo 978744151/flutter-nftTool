@@ -5,7 +5,7 @@ import 'dart:convert';
 import '../router/router.dart';
 
 class HttpClient {
-  static const String baseUrl = 'http://8.155.53.210:3000';
+  static const String baseUrl = 'http://8.155.53.210:3000/api/v1';
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   static Future<String?> _getToken() async {
@@ -43,16 +43,22 @@ class HttpClient {
   static dynamic _handleResponse(http.Response response) {
     try {
       final data = json.decode(response.body);
+      print(response);
+      if (response.statusCode == 401) {
+        _showErrorMessage('登录已过期，请重新登录');
+
+        final context = router.routerDelegate.navigatorKey.currentContext;
+
+        if (context != null) {
+          router.go('/login');
+        }
+        throw Exception('未授权');
+      }
+
       if (response.statusCode != 200 || data['success'] != true) {
         final message = data['error'] ?? '请求失败';
         _showErrorMessage(message);
         throw Exception(message);
-      }
-
-      if (response.statusCode == 401) {
-        _showErrorMessage('登录已过期，请重新登录');
-        // _handleUnauthorized();
-        throw Exception('未授权');
       }
 
       return data;
@@ -79,7 +85,7 @@ class HttpClient {
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red[700],
           margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height - 60, // 计算距离顶部的位置
+            bottom: MediaQuery.of(context).size.height - 100, // 计算距离顶部的位置
             left: 20,
             right: 20,
           ),

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/http_client.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -45,14 +46,14 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
 
     try {
-      final data = await HttpClient.post('/api/v1/auth/login', body: {
+      final data = await HttpClient.post('/auth/login', body: {
         'email': _emailController.text,
         'password': _passwordController.text,
       });
-
+      print(data);
       if (data['success'] == true) {
         // 修改这里，根据实际返回的数据结构获取 token
-        final token = data['data']['token']; // 修改这行
+        final token = data['token']; // 修改这行
         await _saveToken(token);
         await _fetchUserInfo();
         if (mounted) {
@@ -66,12 +67,12 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
     } catch (e) {
-      print('Login error: $e'); // 添加错误日志
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('网络错误，请稍后重试')),
-        );
-      }
+      // print('Login error: $e'); // 添加错误日志
+      // if (mounted) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(content: Text('未知错误')),
+      //   );
+      // }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -81,10 +82,13 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _fetchUserInfo() async {
     try {
-      final data = await HttpClient.get('/api/v1/auth/me');
+      final data = await HttpClient.get('/auth/me');
       if (data['success'] == true) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('userInfo', json.encode(data['data']));
+        if (mounted) {
+          context.go('/'); // 使用 go_router 进行导航
+        }
       }
     } catch (e) {
       print('Error fetching user info: $e');

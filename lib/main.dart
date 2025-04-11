@@ -36,7 +36,26 @@ class MyApp extends StatelessWidget {
       routerConfig: router,
       title: 'NFT ONCE',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: const Color.fromARGB(255, 199, 46, 102),
+        // 设置 TextButton 主题
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 199, 46, 102),
+            foregroundColor: Colors.white,
+          ),
+        ),
+        // 设置 ElevatedButton 主题
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+          ),
+        ),
+        // 设置 OutlinedButton 主题
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            backgroundColor: const Color.fromRGBO(176, 224, 230, 1),
+          ),
+        ),
         scaffoldBackgroundColor: Colors.white, // 设置默认背景颜色为白色
       ),
     );
