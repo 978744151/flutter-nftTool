@@ -341,7 +341,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                             Row(
                               children: [
                                 Text(
-                                  '${blogInfo.createdAt}',
+                                  blogInfo.createdAt,
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontSize: 14,
@@ -457,6 +457,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
+                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.05),
                       offset: const Offset(0, -1),
                       blurRadius: 8,
@@ -488,6 +489,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                       });
                     },
                     child: Container(
+                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.5),
                       height: MediaQuery.of(context).size.height -
                           MediaQuery.of(context).viewInsets.bottom -
@@ -500,6 +502,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
+                        // ignore: deprecated_member_use
                         color: Colors.black.withOpacity(0.05),
                         offset: const Offset(0, -1),
                         blurRadius: 8,

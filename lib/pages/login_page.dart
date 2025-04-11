@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/http_client.dart';
@@ -111,13 +110,13 @@ class _LoginPageState extends State<LoginPage> {
             end: Alignment.bottomRight,
             colors: [
               Color(0xFF1890FF),
-              Color(0xFF64B5F6),
+              Color.fromARGB(255, 66, 83, 96),
               Color(0xFF90CAF9),
             ],
           ),
         ),
         child: SingleChildScrollView(
-          child: Container(
+          child: SizedBox(
             height: MediaQuery.of(context).size.height,
             child: Stack(
               children: [
@@ -130,6 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                     height: 200,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      // ignore: deprecated_member_use
                       color: Colors.white.withOpacity(0.1),
                     ),
                   ),
@@ -142,6 +142,7 @@ class _LoginPageState extends State<LoginPage> {
                     height: 300,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      // ignore: deprecated_member_use
                       color: Colors.white.withOpacity(0.1),
                     ),
                   ),
@@ -164,6 +165,7 @@ class _LoginPageState extends State<LoginPage> {
                               color: Colors.white,
                               boxShadow: [
                                 BoxShadow(
+                                  // ignore: deprecated_member_use
                                   color: Colors.black.withOpacity(0.1),
                                   blurRadius: 10,
                                   offset: const Offset(0, 5),
@@ -191,6 +193,7 @@ class _LoginPageState extends State<LoginPage> {
                           '请登录您的账号',
                           style: TextStyle(
                             fontSize: 16,
+                            // ignore: deprecated_member_use
                             color: Colors.white.withOpacity(0.8),
                           ),
                         ),
@@ -202,6 +205,7 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
+                                // ignore: deprecated_member_use
                                 color: Colors.black.withOpacity(0.1),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),

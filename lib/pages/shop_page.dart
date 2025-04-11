@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/bottom_navigation.dart';
 import '../models/nft_category.dart';
 import '../models/nft.dart';
 import '../services/nft_service.dart';
@@ -156,7 +155,7 @@ class _ShopPageState extends State<ShopPage>
       body: Column(
         children: [
           // 分类列表
-          Container(
+          SizedBox(
             height: 40,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,

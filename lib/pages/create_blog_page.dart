@@ -24,7 +24,8 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
   final List<String> _suggestedTags = ['咖啡打卡奶茶', '挑战意式浓缩', '自己在家做咖啡', '自制咖啡'];
 
   Future<void> _pickImages() async {
-    final List<XFile>? images = await _picker.pickMultiImage();
+    final List<XFile> images = await _picker.pickMultiImage();
+    // ignore: unnecessary_null_comparison
     if (images != null) {
       setState(() {
         _images.addAll(images.map((image) => File(image.path)));
@@ -55,13 +56,16 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
     try {
       final response = await request.send();
       if (response.statusCode == 200) {
+        // ignore: use_build_context_synchronously
         Navigator.pop(context);
       } else {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('上传失败')),
         );
       }
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('上传出错: $e')),
       );
@@ -157,7 +161,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                 ),
               )
             else
-              Container(
+              SizedBox(
                 height: 100, // 减小高度
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
@@ -207,6 +211,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                             child: Container(
                               padding: EdgeInsets.all(4),
                               decoration: BoxDecoration(
+                                // ignore: deprecated_member_use
                                 color: Colors.black.withOpacity(0.5),
                                 shape: BoxShape.circle,
                               ),

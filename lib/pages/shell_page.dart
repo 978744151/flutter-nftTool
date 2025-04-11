@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart'; // 添加这行
 import '../widgets/bottom_navigation.dart';
-import 'home_page.dart';
-import 'shop_page.dart';
-import 'message_page.dart';
-import 'mine_page.dart';
 
 class ShellPage extends StatefulWidget {
   final StatefulNavigationShell navigationShell;

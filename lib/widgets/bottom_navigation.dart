@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -34,7 +33,7 @@ class CustomBottomNavigation extends StatelessWidget {
         // 移除 const
         const BottomNavigationBarItem(
           icon: SizedBox(),
-          label: '首页',
+          label: '首页122333',
         ),
         const BottomNavigationBarItem(
           icon: SizedBox(),

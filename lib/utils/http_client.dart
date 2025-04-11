@@ -71,7 +71,7 @@ class HttpClient {
       // } else {
       //   _showErrorMessage('网络请求失败：${e.toString()}');
       // }
-      throw e;
+      rethrow;
     }
   }
 

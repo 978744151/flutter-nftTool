@@ -1,6 +1,5 @@
 // lib/pages/mine_page.dart
 import 'package:flutter/material.dart';
-import '../widgets/bottom_navigation.dart';
 
 class MinePage extends StatelessWidget {
   @override
