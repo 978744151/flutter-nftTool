@@ -33,7 +33,7 @@ class CustomBottomNavigation extends StatelessWidget {
         // 移除 const
         const BottomNavigationBarItem(
           icon: SizedBox(),
-          label: '首页122333',
+          label: '首页',
         ),
         const BottomNavigationBarItem(
           icon: SizedBox(),

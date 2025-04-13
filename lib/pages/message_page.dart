@@ -72,17 +72,14 @@ class _MessagePageState extends State<MessagePage>
       final response = await HttpClient.get('/blogs?page=1');
 
       if (!mounted) return; // 再次检查mounted状态
-      print(response);
       if (response['success']) {
         final List<dynamic> blogsData = response['data']['data'] ?? [];
-        print(blogsData.map((item) => Blog.fromJson(item)).toList());
         setState(() {
           blogs = blogsData.map((item) => Blog.fromJson(item)).toList();
           isLoading = false;
         });
       }
     } catch (e) {
-      print('Error fetching blogs: $e');
       if (!mounted) return;
       setState(() {
         isLoading = false;
@@ -391,7 +388,7 @@ class RedBookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.go('/message/detail/$id');
+        context.go('/messageDetail/$id');
       },
       child: Card(
         color: Colors.white,

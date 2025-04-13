@@ -13,7 +13,7 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(); // 添加这行
 
 final router = GoRouter(
   navigatorKey: _rootNavigatorKey, // 添加这行
-  initialLocation: '/message',
+  initialLocation: '/',
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -23,11 +23,11 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/message',
+              path: '/',
               builder: (context, state) => const MessagePage(),
               routes: [
                 GoRoute(
-                  path: 'detail/:id', // 修改为子路由
+                  path: 'messageDetail/:id', // 修改为子路由
                   parentNavigatorKey: _rootNavigatorKey, // 添加这行
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;

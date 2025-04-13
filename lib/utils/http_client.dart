@@ -3,9 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../router/router.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class HttpClient {
-  static const String baseUrl = 'http://8.155.53.210:3000/api/v1';
+  static const String baseUrl = 'http://127.0.0.1:5001/api/v1';
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   static Future<String?> _getToken() async {
@@ -45,8 +46,14 @@ class HttpClient {
       final data = json.decode(response.body);
       print(response);
       if (response.statusCode == 401) {
-        _showErrorMessage('登录已过期，请重新登录');
-
+        // _showErrorMessage('登录已过期，请重新登录');
+        Fluttertoast.showToast(
+            msg: "登录已过期，请重新登录",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            backgroundColor: Colors.black87,
+            textColor: Colors.white,
+            fontSize: 16.0);
         final context = router.routerDelegate.navigatorKey.currentContext;
 
         if (context != null) {

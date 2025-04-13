@@ -6,7 +6,11 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:go_router/go_router.dart';
 
 import 'dart:io';
-import 'package:http/http.dart' as http;
+import 'dart:convert';
+// 添加条件导入
+import 'package:http_parser/http_parser.dart';
+
+import 'package:dio/dio.dart' as dio;
 
 class CreateBlogPage extends StatefulWidget {
   const CreateBlogPage({Key? key}) : super(key: key);
@@ -22,52 +26,125 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
   final ImagePicker _picker = ImagePicker();
   List<String> _selectedTags = [];
   final List<String> _suggestedTags = ['咖啡打卡奶茶', '挑战意式浓缩', '自己在家做咖啡', '自制咖啡'];
+  bool _validateForm() {
+    if (_titleController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('请输入标题')),
+      );
+      return false;
+    }
+
+    if (_contentController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('请输入内容')),
+      );
+      return false;
+    }
+
+    if (_images.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('请至少上传一张图片')),
+      );
+      return false;
+    }
+
+    return true;
+  }
 
   Future<void> _pickImages() async {
-    final List<XFile> images = await _picker.pickMultiImage();
-    // ignore: unnecessary_null_comparison
-    if (images != null) {
-      setState(() {
-        _images.addAll(images.map((image) => File(image.path)));
-      });
+    try {
+      final List<XFile> images = await _picker.pickMultiImage();
+
+      if (images.isNotEmpty) {
+        // 检查图片数量限制
+        if (_images.length + images.length > 9) {
+          throw Exception('最多只能上传9张图片');
+        }
+
+        // 检查每张图片
+        for (var image in images) {
+          try {
+            print('图片路径: ${image.path}');
+            print('图片名称: ${image.name}');
+            final File file = File(image.path);
+            final int sizeInBytes = await file.length();
+            final double sizeInMb = sizeInBytes / (1024 * 1024);
+
+            if (sizeInMb > 5) {
+              throw Exception('图片大小不能超过5MB');
+            }
+          } catch (fileError) {
+            print('处理图片文件时出错: $fileError');
+            continue; // 跳过这张图片，继续处理下一张
+          }
+        }
+
+        setState(() {
+          _images.addAll(images.map((image) => File(image.path)));
+        });
+      }
+    } catch (e) {
+      print('图片选择错误: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
     }
   }
 
   Future<void> _uploadBlog() async {
-    // 创建一个 MultipartRequest
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse('your_api_base_url/upload'),
-    );
-
-    // 添加文本字段
-    request.fields['title'] = _titleController.text;
-    request.fields['content'] = _contentController.text;
-
-    // 添加图片
-    for (var i = 0; i < _images.length; i++) {
-      var pic = await http.MultipartFile.fromPath(
-        'images[$i]',
-        _images[i].path,
-      );
-      request.files.add(pic);
-    }
-
     try {
-      final response = await request.send();
-      if (response.statusCode == 200) {
-        // ignore: use_build_context_synchronously
-        Navigator.pop(context);
-      } else {
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('上传失败')),
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Center(child: CircularProgressIndicator()),
+      );
+
+      final dioInstance = dio.Dio();
+      dioInstance.options.headers['Authorization'] =
+          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmE2ZjAyMzc1MmRjNjE1NzA2ODJiMCIsIm5hbWUiOiIxIiwiaWF0IjoxNzQ0NDY1NjY3LCJleHAiOjE3NDcwNTc2Njd9.q_XajYuq3P7C60V8sSqVlJrlCG-gCG0Fx9azre4uY1c';
+
+      List<String> imageUrls = [];
+      for (var i = 0; i < _images.length; i++) {
+        String fileName = _images[i].path.split('/').last;
+        List<int> imageBytes = await _images[i].readAsBytes();
+
+        dio.FormData formData = dio.FormData.fromMap({
+          'url': await dio.MultipartFile.fromBytes(
+            imageBytes,
+            filename: fileName,
+            contentType: MediaType(
+              'image',
+              'jpeg,png',
+            ), // 或者根据实际图片类型设置
+          ),
+        });
+
+        final response = await dioInstance.post(
+          'http://127.0.0.1:5001/api/v1/upload/image',
+          data: formData,
+          onSendProgress: (int sent, int total) {
+            print('上传进度: ${(sent / total * 100).toStringAsFixed(2)}%');
+          },
         );
+
+        print('上传响应: ${response.data}');
+
+        if (response.statusCode == 200) {
+          imageUrls.add(response.data['url']);
+        }
       }
-    } catch (e) {
-      // ignore: use_build_context_synchronously
+
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('上传出错: $e')),
+        SnackBar(content: Text('上传成功')),
+      );
+    } catch (e) {
+      print('发布错误: $e');
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('发布失败: $e')),
       );
     }
   }
@@ -121,7 +198,11 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
         ),
         actions: [
           TextButton(
-            onPressed: _uploadBlog,
+            onPressed: () {
+              // if (_validateForm()) {
+              _uploadBlog();
+              // }
+            },
             child: Container(
               // padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
