@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../router/router.dart';
+// ignore: depend_on_referenced_packages
 import 'package:fluttertoast/fluttertoast.dart';
 
 class HttpClient {
@@ -47,6 +48,8 @@ class HttpClient {
       print(response);
       if (response.statusCode == 401) {
         // _showErrorMessage('登录已过期，请重新登录');
+
+        // ignore: depend_on_referenced_packages
         Fluttertoast.showToast(
             msg: "登录已过期，请重新登录",
             toastLength: Toast.LENGTH_SHORT,

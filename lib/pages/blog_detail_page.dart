@@ -5,6 +5,7 @@ import '../config/comment_api.dart';
 import 'package:intl/intl.dart'; // 添加这行
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/http_client.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class BlogDetailPage extends StatefulWidget {
   final String id; // 添加 id 参数
@@ -25,7 +26,8 @@ class BlogInfo {
   final String content;
   final String createdAt;
   final String type;
-  final List<Comment> replies; // 修改为 List<Comment>
+  final List<Comment> replies;
+  final List<String> images; // 添加图片数组
 
   BlogInfo({
     this.title = '',
@@ -33,7 +35,8 @@ class BlogInfo {
     this.content = '',
     this.createdAt = '',
     this.type = '',
-    this.replies = const [], // 默认为空列表
+    this.replies = const [],
+    this.images = const [], // 默认为空数组
   });
 
   factory BlogInfo.fromJson(Map<String, dynamic> json) {
@@ -43,6 +46,7 @@ class BlogInfo {
       content: json['content'] ?? '',
       createdAt: json['createdAt'] ?? '',
       type: json['type'] ?? '',
+      images: List<String>.from(json['images'] ?? []), // 解析图片数组
     );
   }
 }
@@ -291,139 +295,163 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              blogInfo.title,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          // 添加轮播图
+                          if (blogInfo.images.isNotEmpty) ...[
+                            CarouselSlider.builder(
+                              itemCount: blogInfo.images.length,
+                              itemBuilder: (context, index, realIndex) {
+                                return Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 0),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(0),
+                                    image: DecorationImage(
+                                      image:
+                                          NetworkImage(blogInfo.images[index]),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                );
+                              },
+                              options: CarouselOptions(
+                                height: 400,
+                                viewportFraction: 1.0,
+                                autoPlay: false,
+                                enlargeCenterPage: false,
+                                autoPlayInterval: const Duration(seconds: 3),
+                                autoPlayAnimationDuration:
+                                    const Duration(milliseconds: 800),
                               ),
                             ),
-                            const SizedBox(height: 12),
-
-                            if (blogInfo.type == 'hasAbstract') ...[
-                              // 或者根据实际情况判断是否有摘要
-                              const Text(
-                                '内容摘要',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Divider(),
-                              const SizedBox(height: 16),
-                            ],
-                            const SizedBox(height: 8),
-                            // const Divider(),
-                            // const SizedBox(height: 16),
-                            // const Text(
-                            //   '正文内容',
-                            //   style: TextStyle(
-                            //     fontSize: 16,
-                            //     fontWeight: FontWeight.bold,
-                            //   ),
-                            // ),
-                            Text(
-                              blogInfo.content,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                height: 1.6,
-                              ),
+                            const SizedBox(height: 16),
+                          ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 12,
                             ),
-
-                            const SizedBox(height: 24),
-
-                            Row(
+                            child: Column(
                               children: [
-                                Text(
-                                  blogInfo.createdAt,
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
+                                Row(
+                                  children: [
+                                    Text(
+                                      blogInfo.title,
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Text(
+                                      blogInfo.content,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        height: 1.6,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+                                Row(
+                                  children: [
+                                    Text(
+                                      blogInfo.createdAt,
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                const Divider(
+                                  color: Color.fromARGB(68, 200, 207, 201),
+                                ),
+                                Row(
+                                  children: [
+                                    const Text(
+                                      '所有评论',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                // 添加评论输入提示框
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8F9FA),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.network(
+                                        "https://api.dicebear.com/9.x/big-ears/svg",
+                                        height: 30,
+                                        width: 30,
+                                        placeholderBuilder:
+                                            (BuildContext context) =>
+                                                const Icon(Icons.person),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              _replyToName = '';
+                                              _currentCommentId = null;
+                                              _currentReplyTo = null;
+                                            });
+                                            FocusScope.of(context).requestFocus(
+                                                _commentFocusNode);
+                                          },
+                                          child: Container(
+                                            height: 38,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: const Color(0xFFE8E8E8),
+                                                width: 1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 4),
+                                            child: const Row(
+                                              children: [
+                                                Text(
+                                                  '说点什么吧...',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
-                            const Divider(
-                              color: Color.fromARGB(68, 200, 207, 201),
-                            ),
-                            const Text(
-                              '所有评论',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            // 添加评论输入提示框
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8F9FA),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  SvgPicture.network(
-                                    "https://api.dicebear.com/9.x/big-ears/svg",
-                                    height: 30,
-                                    width: 30,
-                                    placeholderBuilder:
-                                        (BuildContext context) =>
-                                            const Icon(Icons.person),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _replyToName = '';
-                                          _currentCommentId = null;
-                                          _currentReplyTo = null;
-                                        });
-                                        FocusScope.of(context)
-                                            .requestFocus(_commentFocusNode);
-                                      },
-                                      child: Container(
-                                        height: 38,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: const Color(0xFFE8E8E8),
-                                            width: 1,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 4),
-                                        child: const Row(
-                                          children: [
-                                            Text(
-                                              '说点什么吧...',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                       // 修改 ListView.builder 中的调用
                       ListView.builder(
@@ -762,18 +790,18 @@ class CommentItem extends StatelessWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (comment.toUserName.isNotEmpty &&
-                              comment.toUserName !=
-                                  parentComment?.user?['name']) ...[
-                            Text(
-                              '回复 ${comment.toUserName}: ',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                              ),
+                          // if (comment.toUserName.isNotEmpty &&
+                          //     comment.toUserName !=
+                          //         parentComment?.user?['name']) ...[
+                          Text(
+                            '回复 ${comment.toUserName}: ',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
                             ),
-                            const SizedBox(width: 4),
-                          ],
+                          ),
+                          const SizedBox(width: 4),
+                          // ],
                           Expanded(
                             child: Text(
                               comment.content,
