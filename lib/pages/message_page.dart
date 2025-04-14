@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../utils/http_client.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../utils/event_bus.dart';
+import 'dart:async';
+import '../widgets/loading_indicator_widget.dart';
 
 class Blog {
   final String id;
@@ -10,6 +14,8 @@ class Blog {
   final String createName;
   final String createdAt;
   final String type;
+  final String defaultImage;
+  final Map<String, dynamic>? user; // 直接使用 Map
 
   Blog({
     required this.id,
@@ -18,6 +24,8 @@ class Blog {
     required this.createName,
     required this.createdAt,
     required this.type,
+    required this.defaultImage,
+    this.user,
   });
 
   factory Blog.fromJson(Map<String, dynamic> json) {
@@ -28,6 +36,8 @@ class Blog {
       createName: json['createName'] ?? '',
       createdAt: json['createdAt'] ?? '',
       type: json['type'] ?? '',
+      defaultImage: json['defaultImage'] ?? '',
+      user: json['user'], // 直接使用 Map
     );
   }
 }
@@ -43,23 +53,30 @@ class _MessagePageState extends State<MessagePage>
     with AutomaticKeepAliveClientMixin {
   List<Blog> blogs = [];
   bool isLoading = true;
-  final ScrollController _scrollController = ScrollController(); // 添加滚动控制器
+  final ScrollController _scrollController = ScrollController();
+  late StreamSubscription _subscription; // 添加这一行
+
+  @override
+  void initState() {
+    super.initState();
+
+    fetchBlogs();
+
+    // 监听博客创建事件
+    _subscription = eventBus.on<BlogCreatedEvent>().listen((_) {
+      fetchBlogs();
+    });
+  }
 
   @override
   void dispose() {
-    _scrollController.dispose(); // 记得释放
+    _subscription.cancel(); // 取消订阅
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   bool get wantKeepAlive => true;
-
-  @override
-  void initState() {
-    super.initState();
-    // 移除 WidgetsBinding，直接调用
-    fetchBlogs();
-  }
 
   Future<void> fetchBlogs() async {
     if (!mounted) return;
@@ -71,7 +88,7 @@ class _MessagePageState extends State<MessagePage>
     try {
       final response = await HttpClient.get('/blogs?page=1');
 
-      if (!mounted) return; // 再次检查mounted状态
+      if (!mounted) return;
       if (response['success']) {
         final List<dynamic> blogsData = response['data']['data'] ?? [];
         setState(() {
@@ -84,90 +101,130 @@ class _MessagePageState extends State<MessagePage>
       setState(() {
         isLoading = false;
       });
+      // 添加错误提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('刷新失败：${e.toString()}')),
+      );
     }
+    // 返回 Future 完成
+    return Future.value();
   }
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // 必须调用
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 242, 238, 238), // 取消注释并设置为白色
-      // backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: Row(
-          children: [
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _TabItem(text: '关注', isActive: false),
-                  _TabItem(text: '推荐', isActive: true),
-                  _TabItem(text: '最新', isActive: false),
-                ],
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.search, color: Color(0xFF8C8C8C)),
-                onPressed: () {},
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: fetchBlogs,
-              child: blogs.isEmpty
-                  ? const Center(child: Text('暂无数据'))
-                  : MasonryGridView.count(
-                      controller: _scrollController, // 添加控制器
-                      key: const PageStorageKey(
-                        'message_grid',
-                      ), // 添加 key 保存状态
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      padding: const EdgeInsets.all(8),
-                      itemCount: blogs.length,
-                      itemBuilder: (context, index) {
-                        final blog = blogs[index];
-                        // 根据内容长度动态计算高度
-                        final contentLength =
-                            blog.title.length + blog.content.length;
-                        final randomHeight = 160.0 + (contentLength % 3) * 40;
+    super.build(context);
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+          resizeToAvoidBottomInset: false, // 添加此行防止键盘弹出导致布局问题
 
-                        return RedBookCard(
-                          avatar: '',
-                          name: blog.createName,
-                          title: blog.title,
-                          content: blog.content,
-                          time: blog.createdAt,
-                          type: blog.type,
-                          likes: 0,
-                          comments: 0,
-                          height: randomHeight,
-                          id: blog.id,
-                        );
-                      },
-                    ),
+          backgroundColor:
+              const Color.fromARGB(110, 238, 232, 230), // 取消注释并设置为白色
+          // backgroundColor: const Color(0xFFF5F5F5),
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.white,
+            title: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _TabItem(text: '关注', isActive: false),
+                      _TabItem(text: '推荐', isActive: true),
+                      _TabItem(text: '最新', isActive: false),
+                    ],
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.search, color: Color(0xFF8C8C8C)),
+                    onPressed: () {},
+                  ),
+                ),
+              ],
             ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {},
-      //   backgroundColor: const Color(0xFF1890FF),
-      //   child: const Icon(Icons.add, color: Colors.white),
-      //   elevation: 2,
-      // ),
-      // bottomNavigationBar: CustomBottomNavigation(
-      //   currentIndex: 2,
-      // ),
+          ),
+          body: isLoading
+              ? const LoadingIndicatorWidget()
+              : RefreshIndicator(
+                  onRefresh: fetchBlogs, // 确保这里连接到 fetchBlogs
+                  child: blogs.isEmpty
+                      ? ListView(
+                          // 将 Center 改为 ListView 以支持下拉刷新
+                          children: const [
+                            Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 100),
+                                child: Text('暂无数据'),
+                              ),
+                            ),
+                          ],
+                        )
+                      : CustomScrollView(
+                          controller: _scrollController, // 添加控制器
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          slivers: [
+                            SliverToBoxAdapter(
+                                child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: MediaQuery.of(context).size.height *
+                                    0.9, // 修改这里
+                              ),
+                              child: MasonryGridView.count(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                controller: _scrollController, // 添加控制器
+                                key: const PageStorageKey(
+                                  'message_grid',
+                                ), // 添加 key 保存状态
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 8,
+                                padding: const EdgeInsets.all(8),
+                                itemCount: blogs.length,
+                                itemBuilder: (context, index) {
+                                  final blog = blogs[index];
+                                  // 根据内容长度动态计算高度
+                                  final contentLength =
+                                      blog.title.length + blog.content.length;
+                                  final randomHeight =
+                                      180.0 + (contentLength % 3) * 40;
+
+                                  return RedBookCard(
+                                    avatar: '',
+                                    name: blog.createName,
+                                    title: blog.title,
+                                    content: blog.content,
+                                    time: blog.createdAt,
+                                    type: blog.type,
+                                    defaultImage: blog.defaultImage,
+                                    likes: 0,
+                                    comments: 0,
+                                    height: randomHeight,
+                                    id: blog.id,
+                                    user: blog.user,
+                                  );
+                                },
+                              ),
+                            ))
+                          ],
+                        ))
+
+          // floatingActionButton: FloatingActionButton(
+          //   onPressed: () {},
+          //   backgroundColor: const Color(0xFF1890FF),
+          //   child: const Icon(Icons.add, color: Colors.white),
+          //   elevation: 2,
+          // ),
+          // bottomNavigationBar: CustomBottomNavigation(
+          //   currentIndex: 2,
+          // ),
+          ),
     );
   }
 }
@@ -180,19 +237,13 @@ class _TabItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFFE6F7FF) : Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isActive ? const Color(0xFF1890FF) : const Color(0xFF8C8C8C),
-          fontSize: 14,
-          fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
-        ),
+    return Text(
+      text,
+      style: TextStyle(
+        color:
+            isActive ? Theme.of(context).primaryColor : const Color(0xFF8C8C8C),
+        fontSize: isActive ? 18 : 16,
+        fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
       ),
     );
   }
@@ -226,7 +277,8 @@ class MessageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.push('/message/$id');
+        FocusScope.of(context).unfocus();
+        context.go('/messageDetail/$id');
       },
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -366,22 +418,26 @@ class RedBookCard extends StatelessWidget {
   final String time;
   final String id;
   final String type;
+  final String defaultImage;
   final int likes;
   final int comments;
   final double height; // Add this parameter
+  final Map<String, dynamic>? user; // 直接使用 Map
 
   const RedBookCard({
     super.key,
     required this.avatar,
+    this.user,
     required this.id,
     required this.name,
+    required this.defaultImage,
     required this.title,
     required this.content,
     required this.time,
     required this.type,
     required this.likes,
     required this.comments,
-    this.height = 180, // Default height
+    this.height = 200, // Default height
   });
 
   @override
@@ -405,10 +461,18 @@ class RedBookCard extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(8),
                 ),
+                image: defaultImage.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(defaultImage),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: const Center(
-                child: Icon(Icons.image, size: 40, color: Colors.grey),
-              ),
+              child: defaultImage.isEmpty
+                  ? const Center(
+                      child: Icon(Icons.image, size: 40, color: Colors.grey),
+                    )
+                  : null,
             ),
             Padding(
               padding: const EdgeInsets.all(8),
@@ -427,17 +491,22 @@ class RedBookCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 10,
-                        backgroundColor: const Color(0xFFE6F7FF),
-                        child: avatar.isEmpty
-                            ? const Icon(
-                                Icons.person,
-                                color: Color(0xFF1890FF),
-                                size: 14,
-                              )
-                            : null,
+                      SvgPicture.network(
+                        user!['avatar'],
+                        height: 15, // 根据是否为回复设置不同高度
+                        width: 15, // 根据是否为回复设置不同宽度
                       ),
+                      // CircleAvatar(
+                      //   radius: 10,
+                      //   backgroundColor: const Color(0xFFE6F7FF),
+                      //   child: avatar.isEmpty
+                      //       ? const Icon(
+                      //           Icons.person,
+                      //           color: Color(0xFF1890FF),
+                      //           size: 14,
+                      //         )
+                      //       : null,
+                      // ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(

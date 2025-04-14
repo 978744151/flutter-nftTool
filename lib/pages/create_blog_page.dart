@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-// 在文件顶部添加导入
-import 'package:photo_view/photo_view.dart';
-import 'package:photo_view/photo_view_gallery.dart';
+
 import 'package:go_router/go_router.dart';
 
 import 'dart:io';
 import 'dart:convert';
 // 添加条件导入
 import 'package:http_parser/http_parser.dart';
-
+import 'package:image_picker/image_picker.dart';
+// 在文件顶部添加导入
+import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:shared_preferences/shared_preferences.dart'; // 添加导入
+import '../utils/event_bus.dart';
 
 class CreateBlogPage extends StatefulWidget {
   const CreateBlogPage({Key? key}) : super(key: key);
@@ -92,60 +94,114 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
   }
 
   Future<void> _uploadBlog() async {
+    if (!_validateForm()) return;
+
+    OverlayEntry? overlayEntry; // 替换 dialogContext
+
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => Center(child: CircularProgressIndicator()),
+      // 创建加载指示器的 OverlayEntry
+      overlayEntry = OverlayEntry(
+        builder: (context) => Container(
+          color: Colors.black.withOpacity(0.5),
+          child: const Center(child: CircularProgressIndicator()),
+        ),
       );
 
+      // 显示加载指示器
+      Overlay.of(context).insert(overlayEntry);
+
+      // 获取 token
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      print(token);
+      if (token == null) {
+        throw Exception('请先登录');
+      }
+
       final dioInstance = dio.Dio();
-      dioInstance.options.headers['Authorization'] =
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmE2ZjAyMzc1MmRjNjE1NzA2ODJiMCIsIm5hbWUiOiIxIiwiaWF0IjoxNzQ0NDY1NjY3LCJleHAiOjE3NDcwNTc2Njd9.q_XajYuq3P7C60V8sSqVlJrlCG-gCG0Fx9azre4uY1c';
+      dioInstance.options.baseUrl = 'http://127.0.0.1:5001/api/v1';
+      dioInstance.options.connectTimeout = Duration(seconds: 30); // 设置超时
+      dioInstance.options.receiveTimeout = Duration(seconds: 30);
+      dioInstance.options.headers['Authorization'] = 'Bearer $token';
 
-      List<String> imageUrls = [];
+      List<Map<String, String>> imageUrls = [];
       for (var i = 0; i < _images.length; i++) {
-        String fileName = _images[i].path.split('/').last;
-        List<int> imageBytes = await _images[i].readAsBytes();
+        try {
+          String fileName = _images[i].path.split('/').last;
+          List<int> imageBytes = await _images[i].readAsBytes();
 
-        dio.FormData formData = dio.FormData.fromMap({
-          'url': await dio.MultipartFile.fromBytes(
-            imageBytes,
-            filename: fileName,
-            contentType: MediaType(
-              'image',
-              'jpeg,png',
-            ), // 或者根据实际图片类型设置
-          ),
-        });
+          dio.FormData formData = dio.FormData.fromMap({
+            'file': await dio.MultipartFile.fromBytes(
+              imageBytes,
+              filename: fileName,
+              contentType: MediaType('image', 'jpeg'),
+            ),
+          });
+          final response = await dioInstance.post(
+            '/upload/image',
+            data: formData,
+            onSendProgress: (sent, total) {
+              print(
+                  '图片 ${i + 1} 上传进度: ${(sent / total * 100).toStringAsFixed(2)}%');
+            },
+          );
 
-        final response = await dioInstance.post(
-          'http://127.0.0.1:5001/api/v1/upload/image',
-          data: formData,
-          onSendProgress: (int sent, int total) {
-            print('上传进度: ${(sent / total * 100).toStringAsFixed(2)}%');
-          },
-        );
+          print('服务器响应数据: ${response.data}');
 
-        print('上传响应: ${response.data}');
-
-        if (response.statusCode == 200) {
-          imageUrls.add(response.data['url']);
+          if (response.statusCode == 200 && response.data != null) {
+            final responseData = response.data;
+            if (responseData is Map<String, dynamic> &&
+                responseData['success'] == true &&
+                responseData['data'] != null &&
+                responseData['data']['url'] != null) {
+              imageUrls.add({'image': responseData['data']['url']});
+            } else {
+              throw Exception('服务器返回的数据格式不正确: $responseData');
+            }
+          } else {
+            throw dio.DioException(
+              requestOptions: response.requestOptions,
+              message: '上传失败: 服务器返回状态码 ${response.statusCode}',
+            );
+          }
+        } catch (imageError) {
+          print('图片 ${i + 1} 上传失败: $imageError');
+          throw imageError; // 向上传递错误
         }
       }
 
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('上传成功')),
-      );
+      // 上传博客内容
+      final blogData = {
+        'title': _titleController.text,
+        'content': _contentController.text,
+        'blogImage': imageUrls,
+        'tags': _selectedTags,
+      };
+
+      final blogResponse = await dioInstance.post('/blogs', data: blogData);
+      if (blogResponse.statusCode == 200) {
+        overlayEntry.remove(); // 移除加载指示器
+        if (mounted) {
+          FocusScope.of(context).unfocus();
+          await Future.delayed(const Duration(milliseconds: 300));
+          if (mounted) {
+            eventBus.fire(BlogCreatedEvent());
+            context.go('/');
+          }
+        }
+      }
     } catch (e) {
       print('发布错误: $e');
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
+      overlayEntry?.remove(); // 错误时移除加载指示器
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                '发布失败: ${e.toString().replaceAll('DioException [unknown]: ', '')}'),
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('发布失败: $e')),
-      );
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/nft_category.dart';
 import '../models/nft.dart';
 import '../services/nft_service.dart';
+import '../widgets/loading_indicator_widget.dart';
 
 class ShopPage extends StatefulWidget {
   @override
@@ -175,7 +176,9 @@ class _ShopPageState extends State<ShopPage>
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     margin: EdgeInsets.only(left: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.blue : Colors.transparent,
+                      color: isSelected
+                          ? Theme.of(context).primaryColor
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     alignment: Alignment.center,
@@ -193,7 +196,7 @@ class _ShopPageState extends State<ShopPage>
           // NFT列表
           Expanded(
             child: isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? const LoadingIndicatorWidget()
                 : _isGridView
                     ? GridView.builder(
                         controller: _scrollController,
