@@ -1,6 +1,5 @@
-// lib/pages/mine_page.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // 添加这行导入
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:getwidget/getwidget.dart';
 
@@ -9,257 +8,384 @@ class MinePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 设置状态栏颜色与顶部背景一致
+    // 设置状态栏颜色为页面背景颜色
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.green.shade100, // 与顶部渐变色起始颜色一致
+      statusBarColor: const Color(0xFFB2CBF6), // 与页面背景颜色一致
       statusBarIconBrightness: Brightness.dark, // 状态栏图标为深色
     ));
-
     return Scaffold(
-      backgroundColor: Colors.green.shade100, // 设置整个页面背景色
+      backgroundColor: const Color(0xFFB2CBF6),
       body: SafeArea(
         child: Column(
           children: [
             // 顶部信息区域
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.green.shade100, Colors.green.shade50],
+                  colors: [
+                    Color(0xFFB2CBF6),
+                    Color(0xFFF3F3F3),
+                  ],
                 ),
               ),
               child: Column(
                 children: [
-                  // 顶部导航栏
+                  // 顶部用户信息
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '我的',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      // 用户头像
+                      const CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(
+                          'https://api.dicebear.com/9.x/avataaars/svg?seed=Felix',
                         ),
                       ),
+                      const SizedBox(width: 12),
+                      // 用户名和等级
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Text(
+                                  'lvg轩2',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.verified_user,
+                                          size: 12, color: Colors.blue[700]),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        '会员',
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.blue[700]),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            const Row(
+                              children: [
+                                _StatItem(count: '1', label: '车辆'),
+                                SizedBox(width: 16),
+                                _StatItem(count: '0', label: '粉丝'),
+                                SizedBox(width: 16),
+                                _StatItem(count: '1', label: '特权卡'),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // 右侧图标
                       Row(
                         children: [
+                          IconButton(
+                            icon: const Icon(Icons.headset_mic_outlined),
+                            onPressed: () {},
+                          ),
                           IconButton(
                             icon: const Icon(Icons.settings_outlined),
                             onPressed: () {},
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.qr_code_scanner_outlined),
-                            onPressed: () {},
-                          ),
                         ],
                       ),
                     ],
                   ),
 
-                  // 用户信息
+                  // 主要功能区
+                  const SizedBox(height: 20),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      GFAvatar(
-                        backgroundImage: const NetworkImage(
-                          'https://api.dicebear.com/9.x/big-ears/svg',
-                        ),
-                        size: 50,
-                      ),
-                      const SizedBox(width: 15),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Hi, 191*******12',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          // Container(
-                          //   padding: const EdgeInsets.symmetric(
-                          //       horizontal: 8, vertical: 2),
-                          //   decoration: BoxDecoration(
-                          //     color: Colors.green.shade100,
-                          //     borderRadius: BorderRadius.circular(10),
-                          //   ),
-                          //   child: const Text(
-                          //     '会员权益已开通',
-                          //     style: TextStyle(
-                          //       fontSize: 12,
-                          //       color: Colors.green,
-                          //     ),
-                          //   ),
-                          // ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 2),
-                            margin: const EdgeInsets.only(top: 5),
-                            child: const Text(
-                              '关注: 100   粉丝: 100',
-                              style: TextStyle(
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      _buildMainFunction(Icons.access_time, '足迹'),
+                      _buildMainFunction(Icons.star_border, '收藏'),
+                      _buildMainFunction(Icons.send_outlined, '关注'),
+                      _buildMainFunction(Icons.description_outlined, '订单'),
+                      _buildMainFunction(Icons.shopping_cart_outlined, '消息',
+                          hasNotification: true),
                     ],
-                  ),
-
-                  // 新鲜人提示
-                  Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        const Text(
-                          '新鲜人',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        const Icon(Icons.info_outline, size: 16),
-                        const SizedBox(width: 10),
-                        const Expanded(
-                          child: Text(
-                            '还差1200成长值获2次冰箱开门',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.only(top: 20),
-                    decoration: BoxDecoration(),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildFunctionItem(Icons.apartment, '精准定尺寸'),
-                        _buildFunctionItem(Icons.receipt_long, '纪念墙壁纸'),
-                        _buildFunctionItem(Icons.camera_alt_outlined, '免费拍摄装修'),
-                        _buildFunctionItem(Icons.calendar_today, '生日专享'),
-                        _buildFunctionItem(Icons.more_horiz, '更多'),
-                      ],
-                    ),
                   ),
                 ],
               ),
             ),
 
-            // 功能图标区域
-
-            // 活动卡片区域
+            // 二级功能区
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  // border: Border.all(),
+                  border: Border(
+                      top: BorderSide(
+                        color: Colors.grey[100]!,
+                        width: 1.0, // 边框宽度
+                        style: BorderStyle.solid, // 边框样式
+                      ),
+                      bottom: BorderSide(
+                        color: Colors.grey[100]!,
+                        width: 1.0, // 边框宽度
+                        style: BorderStyle.solid, // 边框样式
+                      ))),
+              // color: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildSecondaryFunction(
+                        icon: Icons.local_gas_station,
+                        iconColor: Colors.blue,
+                        bgColor: Colors.blue[50]!,
+                        label: '优惠券',
+                      ),
+                      _buildSecondaryFunction(
+                        icon: Icons.card_giftcard,
+                        iconColor: Colors.orange,
+                        bgColor: Colors.orange[50]!,
+                        label: '加油礼包',
+                      ),
+                      _buildSecondaryFunction(
+                        icon: Icons.monetization_on,
+                        iconColor: Colors.amber,
+                        bgColor: Colors.amber[50]!,
+                        label: '签到',
+                        hasTag: true,
+                      ),
+                      _buildSecondaryFunction(
+                        icon: Icons.directions_car,
+                        iconColor: Colors.red,
+                        bgColor: Colors.red[50]!,
+                        label: '积分兑换',
+                      ),
+                      _buildSecondaryFunction(
+                        icon: Icons.card_membership,
+                        iconColor: Colors.blue,
+                        bgColor: Colors.blue[50]!,
+                        label: '钱包',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // 活动广告条
+            Container(
+              // margin: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              color: Colors.white,
               child: Row(
                 children: [
-                  Expanded(
-                    child: GFCard(
-                      margin: const EdgeInsets.only(right: 5),
-                      padding: const EdgeInsets.all(10),
-                      content: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(Icons.local_shipping,
-                                color: Colors.blue),
-                          ),
-                          const SizedBox(width: 10),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '海马体重球',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  '加入社群',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.orange[100],
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '每日专属好礼',
+                      style: TextStyle(color: Colors.orange[800], fontSize: 12),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: GFCard(
-                      margin: const EdgeInsets.only(left: 5),
-                      padding: const EdgeInsets.all(10),
-                      content: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.purple.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child:
-                                const Icon(Icons.camera, color: Colors.purple),
-                          ),
-                          const SizedBox(width: 10),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '时光故事机',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  '留住年轮',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: Text(
+                      '领取200元车币',
+                      style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      '立即领取',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
                 ],
               ),
             ),
+
+            // 车主服务区
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        '车主服务',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '南京',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                      Icon(Icons.arrow_drop_down,
+                          color: Colors.grey[600], size: 16),
+                      Text(
+                        '今日不推行',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 车主礼包卡片
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.orange[100],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.card_giftcard,
+                              color: Colors.orange[700]),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '200元车主大礼包',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                '洗车优惠券等福利',
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.orange,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.add, color: Colors.white, size: 16),
+                              Text(
+                                '加油优惠',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 底部功能区
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildBottomFunction(Icons.local_gas_station, '加油站油'),
+                      _buildBottomFunction(Icons.car_repair, '去洗车'),
+                      _buildBottomFunction(Icons.directions_car, '车主查询'),
+                      _buildBottomFunction(Icons.card_giftcard, '车主会员'),
+                      _buildBottomFunction(Icons.grid_view, '全部'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // 分割线
+            // Container(
+            //   margin: const EdgeInsets.symmetric(vertical: 8),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     children: [
+            //       Container(width: 60, height: 1, color: Colors.grey[300]),
+            //       const SizedBox(width: 8),
+            //       Text('用车精选',
+            //           style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+            //       const SizedBox(width: 8),
+            //       Container(width: 60, height: 1, color: Colors.grey[300]),
+            //     ],
+            //   ),
+            // ),
           ],
         ),
       ),
-      //   bottomNavigationBar: CustomBottomNavigation(
-      //   currentIndex: 3, // 当前是首页
-      // ),
     );
   }
 
-  Widget _buildFunctionItem(IconData icon, String label) {
+  Widget _buildMainFunction(IconData icon, String label,
+      {bool hasNotification = false}) {
     return Column(
       children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.green.shade100,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: Colors.green),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(icon, size: 28),
+            if (hasNotification)
+              Positioned(
+                right: -6,
+                top: -6,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Text(
+                    '2',
+                    style: TextStyle(color: Colors.white, fontSize: 8),
+                  ),
+                ),
+              ),
+          ],
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 4),
         Text(
           label,
           style: const TextStyle(fontSize: 12),
@@ -268,20 +394,94 @@ class MinePage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String value, String label) {
+  Widget _buildSecondaryFunction({
+    required IconData icon,
+    required Color iconColor,
+    required Color bgColor,
+    required String label,
+    bool hasTag = false,
+  }) {
     return Column(
       children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Icon(icon, color: iconColor, size: 28),
+            ),
+            if (hasTag)
+              Positioned(
+                right: -5,
+                top: -5,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    '每日',
+                    style: TextStyle(color: Colors.white, fontSize: 8),
+                  ),
+                ),
+              ),
+          ],
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 6),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: const TextStyle(fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomFunction(IconData icon, String label) {
+    return Column(
+      children: [
+        Icon(icon, size: 24),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12),
+        ),
+      ],
+    );
+  }
+}
+
+// 统计项组件
+class _StatItem extends StatelessWidget {
+  final String count;
+  final String label;
+
+  const _StatItem({required this.count, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          count,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 12,
+          ),
         ),
       ],
     );

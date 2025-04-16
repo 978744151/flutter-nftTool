@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
       routerConfig: router,
       title: 'NFT ONCE',
       theme: ThemeData(
-        primaryColor: const Color.fromARGB(255, 199, 46, 102),
+        primaryColor: const Color(0xfffbc2eb),
         // 设置 TextButton 主题
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
