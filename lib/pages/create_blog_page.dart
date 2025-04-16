@@ -13,6 +13,7 @@ import 'package:photo_view/photo_view_gallery.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:shared_preferences/shared_preferences.dart'; // 添加导入
 import '../utils/event_bus.dart';
+import '../utils/http_client.dart';
 
 class CreateBlogPage extends StatefulWidget {
   const CreateBlogPage({Key? key}) : super(key: key);
@@ -119,7 +120,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
       }
 
       final dioInstance = dio.Dio();
-      dioInstance.options.baseUrl = 'http://8.155.53.210:3000/api/v1';
+      dioInstance.options.baseUrl = 'http://127.0.0.1:5001/api/v1';
       dioInstance.options.connectTimeout = Duration(seconds: 30); // 设置超时
       dioInstance.options.receiveTimeout = Duration(seconds: 30);
       dioInstance.options.headers['Authorization'] = 'Bearer $token';
@@ -146,7 +147,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
             },
           );
 
-          print('服务器响应数据: ${response.data}');
+          // print('服务器响应数据: ${response.data}');
 
           if (response.statusCode == 200 && response.data != null) {
             final responseData = response.data;
@@ -178,8 +179,8 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
         'tags': _selectedTags,
       };
 
-      final blogResponse = await dioInstance.post('/blogs', data: blogData);
-      if (blogResponse.statusCode == 200) {
+      final blogResponse = await HttpClient.post('/blogs', body: blogData);
+      if (blogResponse['success'] != false) {
         overlayEntry.remove(); // 移除加载指示器
         if (mounted) {
           FocusScope.of(context).unfocus();

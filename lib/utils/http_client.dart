@@ -7,7 +7,7 @@ import '../router/router.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class HttpClient {
-  static const String baseUrl = 'http://8.155.53.210:3000/api/v1';
+  static const String baseUrl = 'http://127.0.0.1:5001/api/v1';
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   static Future<String?> _getToken() async {
@@ -23,10 +23,20 @@ class HttpClient {
     };
   }
 
-  static Future<dynamic> get(String path) async {
+  static Future<dynamic> get(String path,
+      {Map<String, dynamic>? params}) async {
     final headers = await _getHeaders();
+
+    // 构建带查询参数的 URL
+    var uri = Uri.parse('$baseUrl$path');
+    if (params != null) {
+      uri = uri.replace(
+          queryParameters:
+              params.map((key, value) => MapEntry(key, value.toString())));
+    }
+
     final response = await http.get(
-      Uri.parse('$baseUrl$path'),
+      uri,
       headers: headers,
     );
     return _handleResponse(response);

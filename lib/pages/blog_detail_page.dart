@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:convert'; // 添加这行
 
 import '../config/comment_api.dart';
 import 'package:intl/intl.dart'; // 添加这行
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/http_client.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import '../utils/storage.dart'; // 添加导入
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 
 class BlogDetailPage extends StatefulWidget {
   final String id; // 添加 id 参数
@@ -27,7 +30,9 @@ class BlogInfo {
   final String createdAt;
   final String type;
   final List<Comment> replies;
-  final List<String> images; // 添加图片数组
+  final List<String> images;
+  final Map<String, dynamic>? user; // 添加这行
+  final bool isFollowed; // 添加这行
 
   BlogInfo({
     this.title = '',
@@ -36,7 +41,9 @@ class BlogInfo {
     this.createdAt = '',
     this.type = '',
     this.replies = const [],
-    this.images = const [], // 默认为空数组
+    this.images = const [],
+    this.user, // 添加这行
+    this.isFollowed = false, // 添加这行
   });
 
   factory BlogInfo.fromJson(Map<String, dynamic> json) {
@@ -46,7 +53,9 @@ class BlogInfo {
       content: json['content'] ?? '',
       createdAt: json['createdAt'] ?? '',
       type: json['type'] ?? '',
-      images: List<String>.from(json['images'] ?? []), // 解析图片数组
+      images: List<String>.from(json['images'] ?? []),
+      user: json['user'] as Map<String, dynamic>?, // 添加这行
+      isFollowed: json['isFollowed'] ?? false, // 添加这行
     );
   }
 }
@@ -62,13 +71,25 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
   List<Comment> comments = [];
   BlogInfo blogInfo = BlogInfo();
   String _replyToName = ''; // 添加这行
-
+  bool isFollowing = false;
   @override
   void initState() {
     super.initState();
     _commentFocusNode.addListener(_handleFocusChange);
-    fetchComments();
     fetchBlogDetail();
+    fetchComments();
+  }
+
+  Future<void> getToken(String token) async {
+    try {
+      final userInfoJson = await Storage.getString('userInfo');
+      if (userInfoJson != null) {
+        final userInfo = json.decode(userInfoJson);
+        fetchFollowInfo(userInfo['_id']);
+      }
+    } catch (e) {
+      print('获取用户信息失败: $e');
+    }
   }
 
   @override
@@ -76,6 +97,27 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
     _commentController.dispose();
     _commentFocusNode.dispose();
     super.dispose();
+  }
+
+// 添加获取关注信息的方法
+  Future<void> fetchFollowInfo(id) async {
+    if (!mounted) return;
+    try {
+      final response = await HttpClient.get('/follow/check', params: {
+        'userId': id,
+        'followId': blogInfo.user?['_id'] ?? '', // 修改：使用博客作者的 _i
+      });
+      if (!mounted) return;
+
+      if (response['success'] == true) {
+        setState(() {
+          isFollowing = response['data']['isFollowing'] ?? false;
+        });
+        print(isFollowing);
+      }
+    } catch (e) {
+      print('获取关注信息失败: $e');
+    }
   }
 
   String formatDateTime(String dateTimeString) {
@@ -99,6 +141,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
         setState(() {
           blogInfo = BlogInfo.fromJson(response['data'] ?? {});
         });
+        getToken('token');
       }
     } catch (e) {
       if (!mounted) return;
@@ -265,21 +308,81 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
               ),
               const SizedBox(width: 8), // 减小间距
               TextButton(
-                onPressed: () {},
+                onPressed: () async {
+                  print(isFollowing);
+                  if (isFollowing == true) {
+                    final result = await showModalActionSheet<int>(
+                      context: context,
+                      title: '取消关注',
+                      message: '不再关注该作者？',
+                      actions: [
+                        SheetAction(
+                          label: '不再关注',
+                          key: 1,
+                          isDestructiveAction: true,
+                        ),
+                      ],
+                      cancelLabel: '取消',
+                    );
+
+                    if (result == 1) {
+                      try {
+                        final response = await HttpClient.post(
+                          '/follow/unfollow',
+                          body: {'userId': blogInfo.user?['_id']},
+                        );
+
+                        if (response['success'] == true) {
+                          if (mounted) {
+                            fetchBlogDetail();
+                          }
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('取消关注失败，请稍后重试')),
+                          );
+                        }
+                      }
+                    }
+                  } else {
+                    try {
+                      final response = await HttpClient.post(
+                        '/follow/follow',
+                        body: {'userId': blogInfo.user?['_id']},
+                      );
+
+                      if (response['success'] == true) {
+                        if (mounted) {
+                          fetchBlogDetail(); // 重新获取博客信息以更新关注状态
+                        }
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('关注失败，请稍后重试')),
+                        );
+                      }
+                    }
+                  }
+                },
                 style: TextButton.styleFrom(
-                  // backgroundColor: const Color.fromARGB(255, 199, 46, 102),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12, // 减小内边距
+                    horizontal: 12,
                     vertical: 6,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
+                    side: isFollowing
+                        ? const BorderSide(color: Colors.black)
+                        : BorderSide.none,
                   ),
+                  backgroundColor: isFollowing ? Colors.white : null,
                 ),
-                child: const Text(
-                  '关注',
+                child: Text(
+                  isFollowing ? '已关注' : '关注',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isFollowing ? Colors.black : Colors.white,
                     fontSize: 12,
                   ),
                 ),
@@ -395,7 +498,14 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF8F9FA),
-                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        // ignore: deprecated_member_use
+                                        color: Colors.black.withOpacity(0.05),
+                                        offset: const Offset(0, -1),
+                                        blurRadius: 8,
+                                      ),
+                                    ],
                                   ),
                                   child: Row(
                                     children: [
@@ -790,18 +900,19 @@ class CommentItem extends StatelessWidget {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // if (comment.toUserName.isNotEmpty &&
+                          // &&
                           //     comment.toUserName !=
-                          //         parentComment?.user?['name']) ...[
-                          Text(
-                            '回复 ${comment.toUserName}: ',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
+                          //         parentComment?.user?['name']
+                          if (comment.toUserName.isNotEmpty) ...[
+                            Text(
+                              '回复 ${comment.toUserName}: ',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          // ],
+                            const SizedBox(width: 4),
+                          ],
                           Expanded(
                             child: Text(
                               comment.content,
