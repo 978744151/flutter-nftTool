@@ -243,7 +243,7 @@ class _TabItem extends StatelessWidget {
         color:
             isActive ? Theme.of(context).primaryColor : const Color(0xFF8C8C8C),
         fontSize: isActive ? 18 : 16,
-        fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
+        fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
       ),
     );
   }

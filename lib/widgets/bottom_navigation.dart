@@ -19,7 +19,7 @@ class CustomBottomNavigation extends StatelessWidget {
       },
       type: BottomNavigationBarType.fixed,
       backgroundColor: Colors.white,
-      selectedItemColor: const Color.fromARGB(255, 199, 46, 102),
+      selectedItemColor: Theme.of(context).primaryColor,
       unselectedItemColor: const Color.fromARGB(255, 54, 53, 53),
       selectedLabelStyle: const TextStyle(
         fontSize: 18,
@@ -45,7 +45,7 @@ class CustomBottomNavigation extends StatelessWidget {
             child: Icon(
               Icons.add_circle_outline,
               size: 40,
-              color: Color.fromARGB(255, 199, 46, 102),
+              color: Theme.of(context).primaryColor,
             ),
           ),
           label: '',

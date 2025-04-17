@@ -3,31 +3,50 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:getwidget/getwidget.dart';
 
-class MinePage extends StatelessWidget {
+class MinePage extends StatefulWidget {
   const MinePage({Key? key}) : super(key: key);
 
   @override
+  State<MinePage> createState() => _MinePageState();
+}
+
+class _MinePageState extends State<MinePage> {
+  @override
   Widget build(BuildContext context) {
-    // 设置状态栏颜色为页面背景颜色
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: const Color(0xFFB2CBF6), // 与页面背景颜色一致
-      statusBarIconBrightness: Brightness.dark, // 状态栏图标为深色
-    ));
+    @override
+    void initState() {
+      super.initState();
+      // 设置状态栏颜色为页面背景颜色
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: Colors.blue, // 状态栏背景色
+          statusBarIconBrightness: Brightness.light, // 图标颜色（亮色）
+        ),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFFB2CBF6),
+      // backgroundColor: Colors.white, // 修改为白色背景
       body: SafeArea(
+        top: false, // 添加这行，让 SafeArea 不影响顶部
+
         child: Column(
           children: [
             // 顶部信息区域
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12, // 添加状态栏高度
+                left: 16,
+                right: 16,
+                bottom: 12,
+              ),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
                     Color(0xFFB2CBF6),
-                    Color(0xFFF3F3F3),
+                    Colors.white, // 渐变结束色改为白色
                   ],
                 ),
               ),

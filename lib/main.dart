@@ -31,16 +31,17 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final defaultColor = const Color.fromARGB(255, 51, 119, 230);
     return MaterialApp.router(
       // 移除了不存在的 navigatorKey 参数
       routerConfig: router,
       title: 'NFT ONCE',
       theme: ThemeData(
-        primaryColor: const Color(0xfffbc2eb),
+        primaryColor: defaultColor,
         // 设置 TextButton 主题
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 199, 46, 102),
+            backgroundColor: defaultColor,
             foregroundColor: Colors.white,
           ),
         ),

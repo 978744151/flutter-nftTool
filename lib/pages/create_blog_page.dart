@@ -428,7 +428,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isSelected
-                                  ? Color.fromARGB(255, 199, 46, 102)
+                                  ? Theme.of(context).primaryColor
                                   : Colors.transparent,
                             ),
                           ),
@@ -436,7 +436,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                             '#$tag',
                             style: TextStyle(
                               color: isSelected
-                                  ? Color.fromARGB(255, 199, 46, 102)
+                                  ? Theme.of(context).primaryColor
                                   : Colors.grey[600],
                             ),
                           ),
