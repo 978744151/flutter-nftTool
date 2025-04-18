@@ -150,7 +150,8 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-                backgroundColor: Colors.white,
+                backgroundColor: Color(0xFFB2CBF6),
+                elevation: _scrollProgress * 2, //
                 flexibleSpace: FlexibleSpaceBar(
                   titlePadding: EdgeInsets.zero,
                   // 不显示 FlexibleSpaceBar 的标题
