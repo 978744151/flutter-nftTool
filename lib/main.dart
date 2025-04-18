@@ -31,7 +31,7 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final defaultColor = const Color.fromARGB(255, 51, 119, 230);
+    final defaultColor = const Color(0xFF4e65ff);
     return MaterialApp.router(
       // 移除了不存在的 navigatorKey 参数
       routerConfig: router,
@@ -57,6 +57,7 @@ class MyApp extends StatelessWidget {
             backgroundColor: const Color.fromRGBO(176, 224, 230, 1),
           ),
         ),
+
         scaffoldBackgroundColor: Colors.white, // 设置默认背景颜色为白色
       ),
     );

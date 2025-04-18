@@ -2,6 +2,8 @@ import 'package:flutter/material.dart'; // 添加这行
 import 'package:go_router/go_router.dart';
 import '../pages/home_page.dart';
 import '../pages/shop_page.dart';
+
+import '../pages/shop_detail.dart';
 import '../pages/message_page.dart';
 import '../pages/mine_page.dart';
 import '../pages/blog_detail_page.dart';
@@ -43,6 +45,16 @@ final router = GoRouter(
             GoRoute(
               path: '/shop',
               builder: (context, state) => ShopPage(),
+              routes: [
+                GoRoute(
+                  path: 'detail/:id', // 修改为子路由
+                  parentNavigatorKey: _rootNavigatorKey, // 添加这行
+                  builder: (context, state) {
+                    final id = state.pathParameters['id']!;
+                    return ShopDetail(id: id);
+                  },
+                ),
+              ],
             ),
           ],
         ),

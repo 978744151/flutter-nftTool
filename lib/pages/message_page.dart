@@ -121,34 +121,46 @@ class _MessagePageState extends State<MessagePage>
           backgroundColor:
               const Color.fromARGB(110, 238, 232, 230), // 取消注释并设置为白色
           // backgroundColor: const Color(0xFFF5F5F5),
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: Colors.white,
-            title: Row(
-              children: [
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+          appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(kToolbarHeight),
+              child: GestureDetector(
+                onTap: () {
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: AppBar(
+                  elevation: 0,
+                  backgroundColor: Colors.white,
+                  title: Row(
                     children: [
-                      _TabItem(text: '关注', isActive: false),
-                      _TabItem(text: '推荐', isActive: true),
-                      _TabItem(text: '最新', isActive: false),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _TabItem(text: '关注', isActive: false),
+                            _TabItem(text: '推荐', isActive: true),
+                            _TabItem(text: '最新', isActive: false),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.search,
+                              color: Color(0xFF8C8C8C)),
+                          onPressed: () {},
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.search, color: Color(0xFF8C8C8C)),
-                    onPressed: () {},
-                  ),
-                ),
-              ],
-            ),
-          ),
+              )),
           body: isLoading
               ? const LoadingIndicatorWidget()
               : RefreshIndicator(
@@ -240,8 +252,7 @@ class _TabItem extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        color:
-            isActive ? Theme.of(context).primaryColor : const Color(0xFF8C8C8C),
+        color: isActive ? const Color(0xFF333333) : const Color(0xFF8C8C8C),
         fontSize: isActive ? 18 : 16,
         fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
       ),

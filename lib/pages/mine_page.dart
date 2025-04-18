@@ -104,11 +104,11 @@ class _MinePageState extends State<MinePage> {
                             const SizedBox(height: 4),
                             const Row(
                               children: [
-                                _StatItem(count: '1', label: '车辆'),
+                                _StatItem(count: '1', label: '关注'),
                                 SizedBox(width: 16),
                                 _StatItem(count: '0', label: '粉丝'),
                                 SizedBox(width: 16),
-                                _StatItem(count: '1', label: '特权卡'),
+                                // _StatItem(count: '1', label: '特权卡'),
                               ],
                             ),
                           ],

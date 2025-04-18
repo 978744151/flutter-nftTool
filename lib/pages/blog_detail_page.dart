@@ -395,6 +395,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
             children: [
               Expanded(
                 child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 80), // 添加底部 padding
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -434,7 +435,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                           ],
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
+                              horizontal: 15,
                               vertical: 12,
                             ),
                             child: Column(

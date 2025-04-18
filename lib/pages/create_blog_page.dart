@@ -120,7 +120,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
       }
 
       final dioInstance = dio.Dio();
-      dioInstance.options.baseUrl = 'http://127.0.0.1:5001/api/v1';
+      dioInstance.options.baseUrl = 'http://8.155.53.210:3000/api/v1';
       dioInstance.options.connectTimeout = Duration(seconds: 30); // 设置超时
       dioInstance.options.receiveTimeout = Duration(seconds: 30);
       dioInstance.options.headers['Authorization'] = 'Bearer $token';
