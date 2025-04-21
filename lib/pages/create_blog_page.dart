@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import 'dart:io';
 import 'dart:convert';
+import '../config/base.dart';
+
 // 添加条件导入
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
@@ -120,7 +122,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
       }
 
       final dioInstance = dio.Dio();
-      dioInstance.options.baseUrl = 'http://8.155.53.210:3000/api/v1';
+      dioInstance.options.baseUrl = ApiConfig.prodBaseUrl;
       dioInstance.options.connectTimeout = Duration(seconds: 30); // 设置超时
       dioInstance.options.receiveTimeout = Duration(seconds: 30);
       dioInstance.options.headers['Authorization'] = 'Bearer $token';

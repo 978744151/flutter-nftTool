@@ -5,10 +5,10 @@ import 'dart:convert';
 import '../router/router.dart';
 // ignore: depend_on_referenced_packages
 import 'package:fluttertoast/fluttertoast.dart';
+import '../config/base.dart';
 
 class HttpClient {
-  static const String baseUrl = 'http://8.155.53.210:3000/api/v1';
-  //http://8.155.53.210:3000
+  static const String baseUrl = ApiConfig.baseUrl;
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   static Future<String?> _getToken() async {

@@ -1,10 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-class ApiConfig {
-  static const String baseUrl = 'http://8.155.53.210:3000/api/v1';
-  static String getFullPath(String path) => baseUrl + path;
-}
+import '../config/base.dart';
 
 class Api {
   static final _headers = {'Content-Type': 'application/json'};

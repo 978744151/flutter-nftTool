@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/nft_category.dart';
 import '../models/nft.dart';
-import '../config/nft.dart';
+import '../config/base.dart';
 
 class NFTService {
   // 获取NFT分类
