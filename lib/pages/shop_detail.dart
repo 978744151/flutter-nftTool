@@ -12,6 +12,7 @@ import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/src/widgets/heroes.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter/services.dart';
+import '../api/nft.dart';
 
 class NftInfo {
   final String id;
@@ -71,36 +72,37 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    
+
     // 初始化动画控制器
     _imageAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    
+
     // 立即初始化动画
     _imageScaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _imageAnimationController, curve: Curves.easeOutBack)
-    );
-    
+        CurvedAnimation(
+            parent: _imageAnimationController, curve: Curves.easeOutBack));
+
     _detailsAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds:0),
+      duration: const Duration(milliseconds: 0),
     );
-    
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
-      CurvedAnimation(parent: _detailsAnimationController, curve: Curves.easeOut)
-    );
-    
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+            CurvedAnimation(
+                parent: _detailsAnimationController, curve: Curves.easeOut));
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _detailsAnimationController, curve: Curves.easeOut)
-    );
-    
+        CurvedAnimation(
+            parent: _detailsAnimationController, curve: Curves.easeOut));
+
     _tapAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 0),
     );
-    
+
     // 初始化 nftInfo
     nftInfo = NftInfo(
       id: '',
@@ -109,10 +111,12 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
       price: '',
       quantity: '',
     );
-    
+
     // 获取数据并启动动画
     fetchData();
-    
+
+    fetchConsignmentsList();
+
     // 延迟启动动画，确保有足够时间初始化
     Future.delayed(Duration.zero, () {
       if (mounted) {
@@ -157,6 +161,36 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
     }
     // 返回 Future 完成
     return Future.value();
+  }
+
+  Future<void> fetchConsignmentsList() async {
+    if (!mounted) return;
+    try {
+      final ids = widget.id;
+      final response = await HttpClient.get(NftConfigApi.getNFTConsignments);
+
+      // if (!mounted) return;
+      // if (response['success'] != false) {
+      //   final data = response['data'];
+      //   // 确保数据格式正确
+      //   if (data != null && data is Map<String, dynamic>) {
+      //     setState(() {});
+      //     // 验证状态更新
+      //   } else {
+      //     print('Invalid data format: $data');
+      //   }
+      // }
+    } catch (e) {
+      print(e);
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+      // 添加错误提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('刷新失败：${e.toString()}')),
+      );
+    }
   }
 
   @override
@@ -241,7 +275,7 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                             left: 0,
                             right: 0,
                             child: SizedBox(
-                              child: isLoading || _imageScaleAnimation == null
+                              child: isLoading
                                   ? null
                                   : ScaleTransition(
                                       scale: _imageScaleAnimation,
@@ -251,7 +285,8 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                                           showDialog(
                                             context: context,
                                             builder: (context) => Dialog(
-                                              backgroundColor: Colors.transparent,
+                                              backgroundColor:
+                                                  Colors.transparent,
                                               child: Stack(
                                                 children: [
                                                   InteractiveViewer(
@@ -266,10 +301,12 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                                                     right: 10,
                                                     top: 10,
                                                     child: IconButton(
-                                                      icon: const Icon(Icons.close,
+                                                      icon: const Icon(
+                                                          Icons.close,
                                                           color: Colors.white),
                                                       onPressed: () =>
-                                                          Navigator.pop(context),
+                                                          Navigator.pop(
+                                                              context),
                                                     ),
                                                   ),
                                                 ],
@@ -307,113 +344,115 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                   ),
                   SliverToBoxAdapter(
                     child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Container(
-                          color: Colors.white,
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    nftInfo.name,
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                      opacity: _fadeAnimation,
+                      child: Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  nftInfo.name,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  Text(
-                                    'once meta',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                    ),
+                                ),
+                                Text(
+                                  'once meta',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              // 添加小波浪动画
-                              TweenAnimationBuilder<double>(
-                                tween: Tween<double>(begin: 0.0, end: 1.0),
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.elasticOut,
-                                builder: (context, value, child) {
-                                  return Transform.scale(
-                                    scale: value,
-                                    child: child,
-                                  );
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange[50],
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    '限量版',
-                                    style: TextStyle(
-                                      color: Colors.orange[800],
-                                      fontSize: 12,
-                                    ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // 添加小波浪动画
+                            TweenAnimationBuilder<double>(
+                              tween: Tween<double>(begin: 0.0, end: 1.0),
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.elasticOut,
+                              builder: (context, value, child) {
+                                return Transform.scale(
+                                  scale: value,
+                                  child: child,
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange[50],
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '限量版',
+                                  style: TextStyle(
+                                    color: Colors.orange[800],
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '总量:  ',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '总量:  ',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 14,
                                         ),
-                                        Text(
-                                          '${nftInfo.quantity} 份',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      ),
+                                      Text(
+                                        '${nftInfo.quantity} 份',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                  Expanded(
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '当前流通:  ',
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
+                                ),
+                                Expanded(
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '当前流通:  ',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 14,
                                         ),
-                                        const Text(
-                                          '0份',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                      ),
+                                      const Text(
+                                        '0份',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
+                    ),
                   ),
                   SliverPersistentHeader(
                     pinned: true,
@@ -459,48 +498,48 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
           return AnimationConfiguration.staggeredList(
             position: index,
             duration: const Duration(milliseconds: 300),
-            child:Card(
-                      color: Colors.white,
-                      margin: const EdgeInsets.only(bottom: 12),
-                      elevation: 0.6,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      child: SizedBox(
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 6),
-                          title: Text(
-                            '幻殇·月光 #${index.toString().padLeft(4, '0')}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          subtitle: Text('0x${index}d8f...3e2a'),
-                          trailing: SizedBox(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '¥0.01',
-                                  style: TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Colors.grey[600],
-                                  size: 16,
-                                )
-                              ],
-                            ),
+            child: Card(
+              color: Colors.white,
+              margin: const EdgeInsets.only(bottom: 12),
+              elevation: 0.6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: SizedBox(
+                child: ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  title: Text(
+                    '幻殇·月光 #${index.toString().padLeft(4, '0')}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: Text('0x${index}d8f...3e2a'),
+                  trailing: SizedBox(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '¥0.01',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 14,
                           ),
                         ),
-                      ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.grey[600],
+                          size: 16,
+                        )
+                      ],
                     ),
-                );
+                  ),
+                ),
+              ),
+            ),
+          );
         },
       ),
     );
@@ -510,7 +549,7 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     return TweenAnimationBuilder(
       tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: const Duration(seconds: 1),
@@ -537,7 +576,7 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     return TweenAnimationBuilder(
       tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: const Duration(seconds: 1),
@@ -564,7 +603,7 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     return TweenAnimationBuilder(
       tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: const Duration(seconds: 1),

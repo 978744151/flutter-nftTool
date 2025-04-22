@@ -5,7 +5,7 @@ class ApiConfig {
   static const String prodBaseUrl = 'http://8.155.53.210:3000/api/v1';
 
   // 当前使用的环境
-  static const String baseUrl = prodBaseUrl; // 可以根据构建环境切换
+  static const String baseUrl = devBaseUrl; // 可以根据构建环境切换
 
   static String getFullPath(String path) => baseUrl + path;
 

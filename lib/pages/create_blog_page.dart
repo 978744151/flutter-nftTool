@@ -134,7 +134,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
           List<int> imageBytes = await _images[i].readAsBytes();
 
           dio.FormData formData = dio.FormData.fromMap({
-            'file': await dio.MultipartFile.fromBytes(
+            'file': dio.MultipartFile.fromBytes(
               imageBytes,
               filename: fileName,
               contentType: MediaType('image', 'jpeg'),
@@ -169,7 +169,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
           }
         } catch (imageError) {
           print('图片 ${i + 1} 上传失败: $imageError');
-          throw imageError; // 向上传递错误
+          rethrow; // 向上传递错误
         }
       }
 

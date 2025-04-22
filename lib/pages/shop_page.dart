@@ -198,7 +198,7 @@ class _ShopPageState extends State<ShopPage>
           Expanded(
             child: isLoading
                 ? Center(
-                    child: Container(
+                    child: SizedBox(
                       width: 50,
                       height: 50,
                       child: const LoadingIndicator(
@@ -407,9 +407,9 @@ class _ShopPageState extends State<ShopPage>
                                     ),
                                   ),
                                 ],
-                              ),
-                            ),
-                          );
+    ),
+  ),
+);
                         },
                       ),
           ),

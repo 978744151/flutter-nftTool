@@ -31,7 +31,7 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final defaultColor = const Color(0xFF4e65ff);
+    const defaultColor = Color(0xFF4e65ff);
     return MaterialApp.router(
       // 移除了不存在的 navigatorKey 参数
       routerConfig: router,
