@@ -91,6 +91,7 @@ class _ShopPageState extends State<ShopPage>
   Widget build(BuildContext context) {
     super.build(context); // 必须调用父类的 build 方法
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -407,9 +408,9 @@ class _ShopPageState extends State<ShopPage>
                                     ),
                                   ),
                                 ],
-    ),
-  ),
-);
+                              ),
+                            ),
+                          );
                         },
                       ),
           ),

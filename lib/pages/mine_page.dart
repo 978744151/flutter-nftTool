@@ -38,8 +38,11 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
     // 设置状态栏颜色为页面背景颜色
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
-        statusBarColor: Colors.blue, // 状态栏背景色
-        statusBarIconBrightness: Brightness.light, // 图标颜色（亮色）
+        statusBarColor: Colors.transparent, // 状态栏颜色（透明）
+        statusBarIconBrightness: Brightness.dark, // 状态栏图标颜色（黑色）
+        statusBarBrightness: Brightness.light, // 状态栏亮度（亮色背景）
+        systemNavigationBarColor: Colors.white, // 导航栏颜色
+        systemNavigationBarIconBrightness: Brightness.dark, // 导航栏图标颜色
       ),
     );
 
@@ -131,7 +134,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         if (notification is ScrollUpdateNotification) {
-          final scrollProgress = notification.metrics.pixels / 200.0;
+          final scrollProgress = notification.metrics.pixels / 150.0;
           setState(() {
             _scrollProgress = scrollProgress.clamp(0.0, 1.0);
             _showTitle = _scrollProgress > 0.5;
@@ -140,23 +143,28 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
         return false;
       },
       child: Scaffold(
+        backgroundColor: Colors.white, // 强制白色背景
         body: SafeArea(
           top: false, // 不影响顶部
           child: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
+              final double statusBarHeight = MediaQuery.of(context).padding.top;
               return [
                 // 顶部信息区域 SliverAppBar
                 SliverAppBar(
+                  backgroundColor: Colors.white,
                   expandedHeight: 150.0, // 展开时的高度
-                  pinned: true, // 固定在顶部
+                  pinned: true, // 改为不固定，这样向上滚动时会完全隐藏
+                  floating: true, // 添加浮动特性，使其可以快速显示
+                  snap: false, // 不要立即展开
                   title: AnimatedOpacity(
                     opacity: _showTitle ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
                     child: Text(
-                      '持有资产',
+                      '',
                       style: TextStyle(
                         color: Color.lerp(
-                          Colors.transparent,
+                          Colors.white,
                           Colors.black,
                           _scrollProgress,
                         ),
@@ -165,7 +173,6 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  backgroundColor: Color(0xFFB2CBF6),
                   flexibleSpace: FlexibleSpaceBar(
                     stretchModes: [
                       StretchMode.zoomBackground, // 背景放大（拉伸时）
@@ -196,9 +203,22 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                             children: [
                               // 用户头像
                               SvgPicture.network(
-                                userInfo!['avatar'],
+                                userInfo['avatar'] ??
+                                    'https://api.dicebear.com/9.x/avataaars/svg?seed=Felix',
                                 height: 35,
                                 width: 35,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: 35,
+                                    width: 35,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.person,
+                                        color: Colors.grey),
+                                  );
+                                },
                               ),
                               const SizedBox(width: 12),
                               // 用户名和等级
@@ -361,68 +381,72 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                 ),
 
                 // 藏品标题
-                SliverToBoxAdapter(
-                  child: Container(
-                    color: Colors.white,
-                    padding:
-                        const EdgeInsets.only(left: 16, right: 16, top: 16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '持有资产',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 60),
-                        // 替换原来的IconButton为搜索框
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(18),
+                SliverPersistentHeader(
+                  delegate: _AssetsHeaderDelegate(
+                    Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.only(
+                          left: 16, right: 16, top: 16, bottom: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '持有资产',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                            child: Center(
-                              // 添加 Center 包裹
-                              child: TextField(
-                                textAlignVertical:
-                                    TextAlignVertical.center, // 文本垂直居中
-                                decoration: InputDecoration(
-                                  isDense: true, // 使输入框更紧凑
-                                  hintText: '搜索藏品',
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 14,
-                                  ),
-                                  prefixIcon: Icon(
-                                    Icons.search,
-                                    color: Colors.grey[400],
-                                    size: 20,
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                    // 调整图标约束
-                                    minWidth: 40,
-                                    minHeight: 40,
-                                  ),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 0, // 垂直内边距设为0
-                                    horizontal: 8, // 水平内边距
+                          ),
+                          const SizedBox(width: 60),
+                          // 替换原来的IconButton为搜索框
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Center(
+                                // 添加 Center 包裹
+                                child: TextField(
+                                  textAlignVertical:
+                                      TextAlignVertical.center, // 文本垂直居中
+                                  decoration: InputDecoration(
+                                    isDense: true, // 使输入框更紧凑
+                                    hintText: '搜索藏品',
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 14,
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.search,
+                                      color: Colors.grey[400],
+                                      size: 20,
+                                    ),
+                                    prefixIconConstraints: const BoxConstraints(
+                                      // 调整图标约束
+                                      minWidth: 40,
+                                      minHeight: 40,
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 0, // 垂直内边距设为0
+                                      horizontal: 8, // 水平内边距
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
+                          const SizedBox(width: 8),
+                        ],
+                      ),
                     ),
+                    statusBarHeight,
                   ),
+                  pinned: true, // 固定在顶部
                 ),
 
                 // TabBar（悬浮到顶部）
@@ -430,10 +454,10 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                   delegate: _SliverAppBarDelegate(
                     TabBar(
                       controller: _tabController,
-                      labelColor: Colors.blue,
+                      labelColor: Colors.black,
                       unselectedLabelColor: Colors.grey,
-                      indicatorColor: Colors.blue,
-                      indicatorWeight: 3,
+                      indicatorColor: Theme.of(context).primaryColor,
+                      indicatorWeight: 5,
                       tabs: const [
                         Tab(text: '我的藏品'),
                         Tab(text: '我的盲盒'),
@@ -980,5 +1004,41 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
     return false;
+  }
+}
+
+// 添加资产头部委托类
+class _AssetsHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final Widget _widget;
+  final double _statusBarHeight;
+
+  _AssetsHeaderDelegate(this._widget, this._statusBarHeight);
+
+  @override
+  double get minExtent => 62.0; // Always include status bar height
+
+  @override
+  double get maxExtent => 62.0; // Always include status bar height
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    // Always add the status bar padding to prevent overlap
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          // Status bar spacer
+          // Actual content
+          Expanded(child: _widget),
+        ],
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_AssetsHeaderDelegate oldDelegate) {
+    return _statusBarHeight != oldDelegate._statusBarHeight ||
+        _widget != oldDelegate._widget;
   }
 }

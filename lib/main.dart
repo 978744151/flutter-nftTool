@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 // import './utils/http_client.dart';
 
 // import 'dart:io' show Platform; // 用于检测平台
+import 'package:flutter/services.dart';
 
 import 'router/router.dart'; // 添加这行
 
@@ -32,12 +33,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const defaultColor = Color(0xFF4e65ff);
+
     return MaterialApp.router(
       // 移除了不存在的 navigatorKey 参数
       routerConfig: router,
       title: 'NFT ONCE',
       theme: ThemeData(
         primaryColor: defaultColor,
+
+        appBarTheme: AppBarTheme(
+          systemOverlayStyle: SystemUiOverlayStyle(
+              // statusBarColor: Colors.white, // 状态栏颜色
+              // statusBarBrightness: Brightness.dark, // 状态栏图标深色
+              ),
+        ),
         // 设置 TextButton 主题
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
@@ -57,8 +66,6 @@ class MyApp extends StatelessWidget {
             backgroundColor: const Color.fromRGBO(176, 224, 230, 1),
           ),
         ),
-
-        scaffoldBackgroundColor: Colors.white, // 设置默认背景颜色为白色
       ),
     );
   }
