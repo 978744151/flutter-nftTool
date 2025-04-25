@@ -242,7 +242,7 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                     pinned: true,
                     title: AnimatedOpacity(
                       opacity: _showTitle ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 200),
                       child: Text(
                         nftInfo.name,
                         style: TextStyle(
@@ -505,68 +505,85 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
   }
 
   Widget _buildConsignmentList() {
-    return AnimationLimiter(
-      child: filteredEditions.isEmpty
-          ? const Center(
-              child: Text(
-                '暂无寄售',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: filteredEditions.length,
-              itemBuilder: (context, index) {
-                print(filteredEditions);
-                final item = filteredEditions[index];
-
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  duration: const Duration(milliseconds: 300),
-                  child: Card(
-                    color: const Color(0xFFFFFFFF),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    elevation: 0.6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
+    return RefreshIndicator(
+      onRefresh: () async {
+        // 刷新寄售列表数据
+        await fetchConsignmentsList();
+      },
+      child: AnimationLimiter(
+        child: filteredEditions.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height / 2 - 200,
+                    child: const Center(
+                      child: Text(
+                        '暂无寄售',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w500),
+                      ),
                     ),
-                    child: SizedBox(
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 6),
-                        title: Text(
-                          '${nftInfo.name} #${index.toString().padLeft(4, '0')}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
+                  ),
+                ],
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: filteredEditions.length,
+                itemBuilder: (context, index) {
+                  print(filteredEditions);
+                  final item = filteredEditions[index];
+
+                  return AnimationConfiguration.staggeredList(
+                    position: index,
+                    duration: const Duration(milliseconds: 300),
+                    child: Card(
+                      color: const Color(0xFFFFFFFF),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 0.6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      child: SizedBox(
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 6),
+                          title: Text(
+                            '${nftInfo.name} #${index.toString().padLeft(4, '0')}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        subtitle: Text('0x${item['blockchain_id']}d8f...3e2a'),
-                        trailing: SizedBox(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                item['price'],
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 14,
+                          subtitle:
+                              Text('0x${item['blockchain_id']}d8f...3e2a'),
+                          trailing: SizedBox(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  item['price'],
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                  ),
                                 ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.grey[600],
-                                size: 16,
-                              )
-                            ],
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.grey[600],
+                                  size: 16,
+                                )
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
+      ),
     );
   }
 
@@ -575,24 +592,37 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return TweenAnimationBuilder(
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      duration: const Duration(seconds: 1),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value,
-          child: Transform.translate(
-            offset: Offset(0, 20 * (1 - value)),
-            child: child,
-          ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        // 刷新当前成交数据
+        await fetchData();
       },
-      child: const Center(
-        child: Text(
-          '当前成交',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        ),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          TweenAnimationBuilder(
+            tween: Tween<double>(begin: 0.0, end: 1.0),
+            duration: const Duration(seconds: 1),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Opacity(
+                opacity: value,
+                child: Transform.translate(
+                  offset: Offset(0, 20 * (1 - value)),
+                  child: child,
+                ),
+              );
+            },
+            child: Container(
+              height: MediaQuery.of(context).size.height / 2 - 200,
+              alignment: Alignment.center,
+              child: const Text(
+                '当前成交',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -602,24 +632,37 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return TweenAnimationBuilder(
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      duration: const Duration(seconds: 1),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value,
-          child: Transform.translate(
-            offset: Offset(0, 20 * (1 - value)),
-            child: child,
-          ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        // 刷新NFT详情数据
+        await fetchData();
       },
-      child: const Center(
-        child: Text(
-          'NFT详情',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        ),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          TweenAnimationBuilder(
+            tween: Tween<double>(begin: 0.0, end: 1.0),
+            duration: const Duration(seconds: 1),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Opacity(
+                opacity: value,
+                child: Transform.translate(
+                  offset: Offset(0, 20 * (1 - value)),
+                  child: child,
+                ),
+              );
+            },
+            child: Container(
+              height: MediaQuery.of(context).size.height / 2 - 200,
+              alignment: Alignment.center,
+              child: const Text(
+                'NFT详情',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -629,24 +672,37 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return TweenAnimationBuilder(
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      duration: const Duration(seconds: 1),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value,
-          child: Transform.translate(
-            offset: Offset(0, 20 * (1 - value)),
-            child: child,
-          ),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        // 刷新相关公告数据
+        await fetchData();
       },
-      child: const Center(
-        child: Text(
-          '相关公告',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        ),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          TweenAnimationBuilder(
+            tween: Tween<double>(begin: 0.0, end: 1.0),
+            duration: const Duration(seconds: 1),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Opacity(
+                opacity: value,
+                child: Transform.translate(
+                  offset: Offset(0, 20 * (1 - value)),
+                  child: child,
+                ),
+              );
+            },
+            child: Container(
+              height: MediaQuery.of(context).size.height / 2 - 200,
+              alignment: Alignment.center,
+              child: const Text(
+                '相关公告',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

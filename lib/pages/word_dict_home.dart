@@ -1,41 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
-import '../utils/http_client.dart';
 
-import '../models/nft_category.dart';
-import '../models/nft.dart';
-import '../services/nft_service.dart';
-import 'package:loading_indicator/loading_indicator.dart';
-
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class WordDictHomePage extends StatefulWidget {
+  const WordDictHomePage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<WordDictHomePage> createState() => _WordDictHomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with AutomaticKeepAliveClientMixin {
+class _WordDictHomePageState extends State<WordDictHomePage> {
   final TextEditingController _searchController = TextEditingController();
-  bool _isGridView = true;
-
-  @override
-  bool get wantKeepAlive => true;
-
-  List<NFTCategory> categories = [];
-  List<NFT> nfts = [];
-  bool isLoading = true;
-  String currentCategory = '';
-  int currentPage = 1;
-  final int perPage = 10;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    fetchCategories();
-    _scrollController.addListener(_onScroll);
     // 设置状态栏颜色
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
@@ -47,132 +25,89 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
-    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      fetchNFTs(loadMore: true);
-    }
-  }
-
-  Future<void> fetchCategories() async {
-    try {
-      final categories = await NFTService.getCategories();
-      setState(() {
-        this.categories = categories;
-        if (categories.isNotEmpty) {
-          currentCategory = categories[0].id;
-          fetchNFTs();
-        }
-      });
-    } catch (e) {
-      print('获取分类失败: $e');
-    }
-  }
-
-  Future<void> fetchNFTs({bool loadMore = false}) async {
-    if (!loadMore) {
-      currentPage = 1;
-    }
-    try {
-      final nftList = await NFTService.getNFTs(
-        category: currentCategory,
-        page: currentPage,
-        perPage: perPage,
-      );
-      setState(() {
-        print('获取NFT成功: $nftList');
-        if (loadMore) {
-          nfts.addAll(nftList);
-          currentPage++;
-        } else {
-          nfts = nftList;
-        }
-        isLoading = false;
-      });
-    } catch (e) {
-      print('获取NFT失败: $e');
-      setState(() => isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
-    // 设置状态栏为透明
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-      ),
-    );
-
     return Scaffold(
-      backgroundColor: const Color(0xFFFfffff),
-      // 移除appBar,让内容区域扩展到状态栏
-      extendBodyBehindAppBar: true,
-      extendBody: true,
-      body: CustomScrollView(
-        slivers: <Widget>[
-          // 首先放置横幅，扩展到状态栏
-          SliverToBoxAdapter(
-            child: _buildTopBanner(),
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 顶部横幅 - 测试爱情人格
+              _buildBanner(),
+
+              // 搜索框
+              _buildSearchBar(),
+
+              // 功能区 - 语音翻译、AI、土味情话等
+              _buildFunctionArea(),
+
+              // 热门场景
+              _buildHotScenes(),
+
+              // 黑话词典
+              _buildDictionary(),
+
+              // 底部空白
+              const SizedBox(height: 20),
+            ],
           ),
-
-          // 其余内容
-          SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                // 搜索框
-                _buildSearchBar(),
-
-                // 功能区
-                _buildFunctionArea(),
-
-                // 热门场景
-                _buildHotScenes(),
-
-                // 社区活动
-                _buildBlogHotScenes(),
-
-                // 底部空白
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
+      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
-  // 顶部横幅 - 修改为扩展到状态栏
-  Widget _buildTopBanner() {
+  // 底部导航栏
+  Widget _buildBottomNavBar() {
+    return BottomNavigationBar(
+      currentIndex: 0,
+      type: BottomNavigationBarType.fixed,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: '首页',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.collections_bookmark),
+          label: '藏品',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.add_circle_outline, size: 30),
+          label: '',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.people),
+          label: '社区',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: '我的',
+        ),
+      ],
+    );
+  }
+
+  // 顶部横幅
+  Widget _buildBanner() {
     return Container(
       width: double.infinity,
-      // 增加高度以覆盖状态栏
-      // height: 165 + MediaQuery.of(context).padding.top,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFB2CBF6),
-            Color(0xFFFFFFFF),
-          ],
-        ),
+      height: 150,
+      decoration: BoxDecoration(
+        color: const Color(0xFFB2F5E5), // 薄荷绿背景
+        borderRadius: BorderRadius.circular(0),
       ),
       child: Stack(
         children: [
           // 背景水印文字
           Positioned(
             right: 20,
-            // 调整位置以适应状态栏
-            top: 40 + MediaQuery.of(context).padding.top,
+            top: 40,
             child: Text(
               'MBTI',
               style: TextStyle(
@@ -186,8 +121,7 @@ class _HomePageState extends State<HomePage>
           // 爱心图标
           Positioned(
             right: 20,
-            // 调整位置以适应状态栏
-            top: 10 + MediaQuery.of(context).padding.top,
+            top: 10,
             child: Icon(
               Icons.favorite,
               color: Colors.red[400],
@@ -197,14 +131,12 @@ class _HomePageState extends State<HomePage>
 
           // 主要内容
           Padding(
-            // 调整内边距以适应状态栏
-            padding: EdgeInsets.fromLTRB(
-                20.0, 20.0 + MediaQuery.of(context).padding.top, 20.0, 20.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '欢迎来到 ONCE META',
+                  '测测你的恋爱人格',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -212,7 +144,7 @@ class _HomePageState extends State<HomePage>
                 ),
                 const SizedBox(height: 5),
                 const Text(
-                  '获取您的专属藏品',
+                  '获取专属恋爱方案',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black87,
@@ -230,7 +162,7 @@ class _HomePageState extends State<HomePage>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
-                  child: const Text('立即购买 >'),
+                  child: const Text('立即测试 >'),
                 ),
               ],
             ),
@@ -255,33 +187,25 @@ class _HomePageState extends State<HomePage>
           ),
         ],
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        child: Row(
-          children: [
-            const Icon(Icons.campaign, color: Colors.grey),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text(
-                '公告: 回头望,鹿在朝藏品即将上线',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: '网络流行词搜索解释，比如"彩绘烤瓷杯"',
+          hintStyle: TextStyle(
+            color: Colors.grey[400],
+            fontSize: 14,
+          ),
+          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          suffixIcon: Container(
+            margin: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(15),
             ),
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const Icon(Icons.density_medium,
-                  color: Colors.white, size: 16),
-            ),
-          ],
+            child: const Icon(Icons.search, color: Colors.white, size: 20),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
     );
@@ -289,35 +213,38 @@ class _HomePageState extends State<HomePage>
 
   // 功能区
   Widget _buildFunctionArea() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '发售日记',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildFeatureBox('回头望,鹿在朝', Icons.mic, Colors.pink[100]!, '¥199'),
-              _buildFeatureBox(
-                  '齐天大圣 孙悟空', Icons.school, Colors.green[100]!, '¥99'),
+              _buildFeatureBox('语音翻译', Icons.mic, Colors.pink[100]!),
+              _buildFeatureBox('知识老师', Icons.school, Colors.green[100]!),
             ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildFeatureIcon('集团教程', Icons.book, Colors.blue[50]!),
+              _buildFeatureIcon('技能', Icons.lightbulb, Colors.yellow[50]!),
+              _buildFeatureIcon('土味情话', Icons.favorite, Colors.pink[50]!),
+              _buildFeatureIcon('黑话词典', Icons.menu_book, Colors.purple[50]!),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   // 功能小方块
-  Widget _buildFeatureBox(
-      String title, IconData icon, Color color, String price) {
+  Widget _buildFeatureBox(String title, IconData icon, Color color) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.45,
       padding: const EdgeInsets.all(16),
@@ -338,13 +265,13 @@ class _HomePageState extends State<HomePage>
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                price,
+              const Text(
+                '一键语音 轻松翻译',
                 style: TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 2),
               Text(
-                title == '99' ? '88' : '',
+                title == '知识老师' ? '24小时在线' : '',
                 style: const TextStyle(fontSize: 12),
               ),
             ],
@@ -352,7 +279,7 @@ class _HomePageState extends State<HomePage>
           const Spacer(),
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
             ),
@@ -392,65 +319,31 @@ class _HomePageState extends State<HomePage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            '活动中心',
+            '热门场景',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildFeatureIcon('合成中心', Icons.book, Colors.blue[50]!),
-                _buildFeatureIcon('抽奖活动', Icons.lightbulb, Colors.yellow[50]!),
-                _buildFeatureIcon('签到', Icons.favorite, Colors.pink[50]!),
-                _buildFeatureIcon('邀请码', Icons.pin_invoke, Colors.purple[50]!),
-              ],
-            ),
-          ),
-
-          // const SizedBox(height: 12),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-          //   children: [
-          //     _buildSceneButton('校园语录', Icons.school),
-          //     _buildSceneButton('表情包', Icons.image),
-          //     _buildSceneButton('择偶市场', Icons.favorite),
-          //   ],
-          // ),
-          // const SizedBox(height: 12),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-          //   children: [
-          //     _buildSceneButton('广大社交', Icons.people),
-          //     _buildSceneButton('粤语港', Icons.translate),
-          //     _buildSceneButton('热搜', Icons.trending_up),
-          //     _buildSceneButton('更多', Icons.more_horiz),
-          //   ],
-          // ),
-        ],
-      ),
-    );
-  }
-
-  // 热门场景
-  Widget _buildBlogHotScenes() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '社区活动',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildSceneButton('校园语录', Icons.school),
+              _buildSceneButton('表情包', Icons.image),
+              _buildSceneButton('择偶市场', Icons.favorite),
+            ],
           ),
           const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildSceneButton('广大社交', Icons.people),
+              _buildSceneButton('粤语港', Icons.translate),
+              _buildSceneButton('热搜', Icons.trending_up),
+              _buildSceneButton('更多', Icons.more_horiz),
+            ],
+          ),
         ],
       ),
     );

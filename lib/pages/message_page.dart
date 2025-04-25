@@ -118,9 +118,9 @@ class _MessagePageState extends State<MessagePage>
       child: Scaffold(
           resizeToAvoidBottomInset: false, // 添加此行防止键盘弹出导致布局问题
 
-          backgroundColor:
-              const Color.fromARGB(110, 238, 232, 230), // 取消注释并设置为白色
-          // backgroundColor: const Color(0xFFF5F5F5),
+          // backgroundColor:
+          // const Color.fromARGB(110, 238, 232, 230), // 取消注释并设置为白色
+          backgroundColor: const Color(0xFFF9f9f9),
           appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: GestureDetector(
@@ -148,7 +148,7 @@ class _MessagePageState extends State<MessagePage>
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: IconButton(
@@ -289,7 +289,7 @@ class MessageCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
-        context.go('/messageDetail/$id');
+        context.go('/message/messageDetail/$id');
       },
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -455,7 +455,7 @@ class RedBookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.go('/messageDetail/$id');
+        context.go('/message/messageDetail/$id');
       },
       child: Card(
         color: const Color(0xFFFFFFFF),

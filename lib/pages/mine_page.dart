@@ -275,8 +275,8 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                   elevation: 0,
                   backgroundColor: Color(0xFFB2CBF6),
                   expandedHeight: 150.0, // 减小展开高度
-                  toolbarHeight: MediaQuery.of(context).padding.top, // 设置为状态栏高度
-                  collapsedHeight: MediaQuery.of(context).padding.top,
+                  toolbarHeight: 56, // 固定工具栏高度，不再使用状态栏高度
+                  collapsedHeight: 56, // 固定折叠高度，确保足够空间显示标题
                   pinned: true, // 固定在顶部
                   floating: true, // 保持浮动特性
                   snap: false,
@@ -284,100 +284,61 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                     opacity: _showTitle ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
                     child: // 顶部用户信息
-                        Row(
-                      children: [
-                        // 用户头像
-                        SvgPicture.network(
-                          userInfo['avatar'] ??
-                              'https://api.dicebear.com/9.x/avataaars/svg?seed=Felix',
-                          height: 35,
-                          width: 35,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 35,
-                              width: 35,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                shape: BoxShape.circle,
+                        SizedBox(
+                      height: 42, // 固定高度，不再根据屏幕大小动态调整
+                      child: Row(
+                        children: [
+                          // 用户头像
+                          SvgPicture.network(
+                            userInfo['avatar'] ??
+                                'https://api.dicebear.com/9.x/avataaars/svg?seed=Felix',
+                            height: 35, // 固定头像大小
+                            width: 35,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                height: 35,
+                                width: 35,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.person,
+                                    color: Colors.grey),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          // 用户名和等级 - 简化为只显示用户名
+                          Expanded(
+                            child: Text(
+                              userInfo['name'] ?? '用户',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
-                              child:
-                                  const Icon(Icons.person, color: Colors.grey),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 12),
-                        // 用户名和等级
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          // 右侧图标
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    userInfo['name'] ?? '用户',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 4, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue[50],
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.verified_user,
-                                            size: 12, color: Colors.blue[700]),
-                                        const SizedBox(width: 2),
-                                        Text(
-                                          '会员',
-                                          style: TextStyle(
-                                              fontSize: 10,
-                                              color: Colors.blue[700]),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                              IconButton(
+                                icon: const Icon(Icons.headset_mic_outlined),
+                                onPressed: () {},
+                                padding: EdgeInsets.all(8),
+                                constraints: BoxConstraints(),
                               ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  _StatItem(
-                                      count: followerInfo['followingCount']
-                                              ?.toString() ??
-                                          '0',
-                                      label: '关注'),
-                                  const SizedBox(width: 16),
-                                  _StatItem(
-                                      count: followerInfo['followersCount']
-                                              ?.toString() ??
-                                          '0',
-                                      label: '粉丝'),
-                                  const SizedBox(width: 16),
-                                ],
+                              IconButton(
+                                icon: const Icon(Icons.settings_outlined),
+                                onPressed: () {},
+                                padding: EdgeInsets.all(8),
+                                constraints: BoxConstraints(),
                               ),
                             ],
                           ),
-                        ),
-                        // 右侧图标
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.headset_mic_outlined),
-                              onPressed: () {},
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.settings_outlined),
-                              onPressed: () {},
-                            ),
-                          ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   flexibleSpace: FlexibleSpaceBar(
@@ -1191,12 +1152,14 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
   }
 }
 
-// 统计项组件
+// 修改统计项组件以支持小屏幕
 class _StatItem extends StatelessWidget {
   final String count;
   final String label;
+  final bool smallScreen;
 
-  const _StatItem({required this.count, required this.label});
+  const _StatItem(
+      {required this.count, required this.label, this.smallScreen = false});
 
   @override
   Widget build(BuildContext context) {
@@ -1204,9 +1167,9 @@ class _StatItem extends StatelessWidget {
       children: [
         Text(
           count,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 14,
+            fontSize: smallScreen ? 12 : 14,
           ),
         ),
         const SizedBox(width: 2),
@@ -1214,7 +1177,7 @@ class _StatItem extends StatelessWidget {
           label,
           style: TextStyle(
             color: Colors.grey[600],
-            fontSize: 12,
+            fontSize: smallScreen ? 10 : 12,
           ),
         ),
       ],
