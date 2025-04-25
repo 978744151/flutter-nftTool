@@ -15,8 +15,13 @@ class MinePage extends StatefulWidget {
 
 class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
   Map<dynamic, dynamic> userInfo = {};
+  Map<dynamic, dynamic> userProfile = {};
   Map<dynamic, dynamic> followerInfo = {};
+  Map<dynamic, dynamic> pointsInfo = {};
+  Map<dynamic, dynamic> stats = {};
+
   late TabController _tabController;
+  late ScrollController _scrollController; // 添加滚动控制器
   List<Map<String, dynamic>> myCollectionsList = [];
   List<Map<String, dynamic>> myMysteryBoxesList = [];
   List<Map<String, dynamic>> soldCollectionsList = [];
@@ -28,26 +33,47 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _scrollController = ScrollController(); // 初始化滚动控制器
+
+    // 监听滚动位置
+    _scrollController.addListener(_updateScrollState);
+
     _tabController.addListener(() {
-      // 当Tab切换时，可以在这里添加额外的逻辑
+      // 当Tab切换时，根据索引调用不同的接口
       if (!_tabController.indexIsChanging) {
-        setState(() {});
+        // 切换Tab时，强制设置_showTitle为false
+        if (_showTitle) {
+          setState(() {
+            _showTitle = false;
+          });
+        }
+
+        switch (_tabController.index) {
+          case 0: // 我的藏品
+            fetchProfileCollections(userInfo['_id']);
+            break;
+          case 1: // 我的盲盒
+            fetchProfileMysteryBox(userInfo['_id']);
+            break;
+          case 2: // 售出藏品
+            fetchProfilSalesList(userInfo['_id']);
+            break;
+        }
       }
     });
-
     // 设置状态栏颜色为页面背景颜色
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent, // 状态栏颜色（透明）
         statusBarIconBrightness: Brightness.dark, // 状态栏图标颜色（黑色）
         statusBarBrightness: Brightness.light, // 状态栏亮度（亮色背景）
-        systemNavigationBarColor: Colors.white, // 导航栏颜色
+        systemNavigationBarColor: const Color(0xFFFFFFFF), // 导航栏颜色
         systemNavigationBarIconBrightness: Brightness.dark, // 导航栏图标颜色
       ),
     );
 
     _getToken();
-    _loadMockData();
+    // _loadMockData();
   }
 
   // 加载模拟数据
@@ -94,6 +120,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _tabController.dispose();
+    _scrollController.dispose(); // 释放滚动控制器
     super.dispose();
   }
 
@@ -106,9 +133,86 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
           userInfo = json.decode(userInfoJson);
         });
         fetchFollowInfo(userInfo['_id']);
+        fetchProfile(userInfo['_id']);
+        fetchProfileCollections(userInfo['_id']);
+        fetchProfileMysteryBox(userInfo['_id']);
+        fetchProfilSalesList(userInfo['_id']);
+        setState(() {
+          isLoading = false;
+        });
       }
     } catch (e) {
       print('获取用户信息失败: $e');
+    }
+  }
+
+// 添加获取关注信息的方法
+  Future<void> fetchProfile(id) async {
+    if (!mounted) return;
+    try {
+      final response = await HttpClient.get('/profile');
+      if (!mounted) return;
+
+      if (response['success'] == true) {
+        setState(() {
+          userProfile = response['data'];
+          stats = response['data'] ?? response['data']['stats'];
+          pointsInfo = response['data'] ?? response['data']['pointsInfo'];
+        });
+      }
+    } catch (e) {
+      print('获取信息失败: $e');
+    }
+  }
+
+  // 添加获取藏品的方法
+  Future<void> fetchProfileCollections(id) async {
+    if (!mounted) return;
+    try {
+      final response = await HttpClient.get('/profile/collections');
+      if (!mounted) return;
+
+      if (response['success'] == true) {
+        setState(() {
+          myCollectionsList = response['data'] ?? [];
+        });
+      }
+    } catch (e) {
+      print('获取关信息失败: $e');
+    }
+  }
+
+// 添加获盲盒的方法
+  Future<void> fetchProfileMysteryBox(id) async {
+    if (!mounted) return;
+    try {
+      final response = await HttpClient.get('/profile/mystery-boxes');
+      if (!mounted) return;
+
+      if (response['success'] == true) {
+        setState(() {
+          myMysteryBoxesList = response['data'] ?? [];
+        });
+      }
+    } catch (e) {
+      print('获取关信息失败: $e');
+    }
+  }
+
+  // 添加获盲盒的方法
+  Future<void> fetchProfilSalesList(id) async {
+    if (!mounted) return;
+    try {
+      final response = await HttpClient.get('/profile/sales');
+      if (!mounted) return;
+
+      if (response['success'] == true) {
+        setState(() {
+          soldCollectionsList = response['data'] ?? [];
+        });
+      }
+    } catch (e) {
+      print('获取关信息失败: $e');
     }
   }
 
@@ -129,355 +233,438 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
     }
   }
 
+  // 添加滚动位置更新方法
+  void _updateScrollState() {
+    final scrollProgress = _scrollController.position.pixels / 150.0;
+    final shouldShowTitle = scrollProgress > 0.5;
+
+    if (_showTitle != shouldShowTitle ||
+        _scrollProgress != scrollProgress.clamp(0.0, 1.0)) {
+      setState(() {
+        _scrollProgress = scrollProgress.clamp(0.0, 1.0);
+        _showTitle = shouldShowTitle;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        if (notification is ScrollUpdateNotification) {
-          final scrollProgress = notification.metrics.pixels / 150.0;
-          setState(() {
-            _scrollProgress = scrollProgress.clamp(0.0, 1.0);
-            _showTitle = _scrollProgress > 0.5;
-          });
-        }
-        return false;
-      },
-      child: Scaffold(
-        backgroundColor: Colors.white, // 强制白色背景
-        body: SafeArea(
-          top: false, // 不影响顶部
-          child: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              final double statusBarHeight = MediaQuery.of(context).padding.top;
-              return [
-                // 顶部信息区域 SliverAppBar
-                SliverAppBar(
-                  backgroundColor: Colors.white,
-                  expandedHeight: 150.0, // 展开时的高度
-                  pinned: true, // 改为不固定，这样向上滚动时会完全隐藏
-                  floating: true, // 添加浮动特性，使其可以快速显示
-                  snap: false, // 不要立即展开
-                  title: AnimatedOpacity(
-                    opacity: _showTitle ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 300),
-                    child: Text(
-                      '',
-                      style: TextStyle(
-                        color: Color.lerp(
-                          Colors.white,
-                          Colors.black,
-                          _scrollProgress,
-                        ),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+    return Scaffold(
+      backgroundColor: const Color(0xFFFFFFFF), // 强制白色背景
+      body: SafeArea(
+        top: false, // 不影响顶部
+        child: NestedScrollView(
+          controller: _scrollController, // 使用滚动控制器
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            final double statusBarHeight = MediaQuery.of(context).padding.top;
+            return [
+              // 顶部信息区域 SliverAppBar
+              SliverAppBar(
+                elevation: 0,
+                backgroundColor: Color(0xFFB2CBF6),
+                expandedHeight: 150.0, // 减小展开高度
+                toolbarHeight: MediaQuery.of(context).padding.top, // 设置为状态栏高度
+                collapsedHeight: MediaQuery.of(context).padding.top,
+                pinned: true, // 固定在顶部
+                floating: true, // 保持浮动特性
+                snap: false,
+                title: AnimatedOpacity(
+                  opacity: _showTitle ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: // 顶部用户信息
+                      Row(
+                    children: [
+                      // 用户头像
+                      SvgPicture.network(
+                        userInfo['avatar'] ??
+                            'https://api.dicebear.com/9.x/avataaars/svg?seed=Felix',
+                        height: 35,
+                        width: 35,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 35,
+                            width: 35,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.person, color: Colors.grey),
+                          );
+                        },
                       ),
-                    ),
-                  ),
-                  flexibleSpace: FlexibleSpaceBar(
-                    stretchModes: [
-                      StretchMode.zoomBackground, // 背景放大（拉伸时）
-                      StretchMode.blurBackground, // 背景模糊（拉伸时）
-                    ],
-                    collapseMode: CollapseMode.pin,
-                    background: Container(
-                      padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).padding.top + 12,
-                        left: 16,
-                        right: 16,
-                        bottom: 12,
-                      ),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0xFFB2CBF6),
-                            Colors.white,
+                      const SizedBox(width: 12),
+                      // 用户名和等级
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  userInfo['name'] ?? '用户',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[50],
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.verified_user,
+                                          size: 12, color: Colors.blue[700]),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        '会员',
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.blue[700]),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                _StatItem(
+                                    count: followerInfo['followingCount']
+                                            ?.toString() ??
+                                        '0',
+                                    label: '关注'),
+                                const SizedBox(width: 16),
+                                _StatItem(
+                                    count: followerInfo['followersCount']
+                                            ?.toString() ??
+                                        '0',
+                                    label: '粉丝'),
+                                const SizedBox(width: 16),
+                              ],
+                            ),
                           ],
                         ),
                       ),
-                      child: Column(
+                      // 右侧图标
+                      Row(
                         children: [
-                          // 顶部用户信息
-                          Row(
-                            children: [
-                              // 用户头像
-                              SvgPicture.network(
-                                userInfo['avatar'] ??
-                                    'https://api.dicebear.com/9.x/avataaars/svg?seed=Felix',
-                                height: 35,
-                                width: 35,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    height: 35,
-                                    width: 35,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.person,
-                                        color: Colors.grey),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 12),
-                              // 用户名和等级
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          userInfo['name'] ?? '用户',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 4, vertical: 1),
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue[50],
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.verified_user,
-                                                  size: 12,
-                                                  color: Colors.blue[700]),
-                                              const SizedBox(width: 2),
-                                              Text(
-                                                '会员',
-                                                style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.blue[700]),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        _StatItem(
-                                            count:
-                                                followerInfo['followingCount']
-                                                        ?.toString() ??
-                                                    '0',
-                                            label: '关注'),
-                                        const SizedBox(width: 16),
-                                        _StatItem(
-                                            count:
-                                                followerInfo['followersCount']
-                                                        ?.toString() ??
-                                                    '0',
-                                            label: '粉丝'),
-                                        const SizedBox(width: 16),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // 右侧图标
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon:
-                                        const Icon(Icons.headset_mic_outlined),
-                                    onPressed: () {},
+                          IconButton(
+                            icon: const Icon(Icons.headset_mic_outlined),
+                            onPressed: () {},
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.settings_outlined),
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  expandedTitleScale: 1.0, // 防止标题缩放
+                  stretchModes: [
+                    StretchMode.zoomBackground, // 背景放大（拉伸时）
+                    StretchMode.blurBackground, // 背景模糊（拉伸时）
+                  ],
+                  collapseMode: CollapseMode.pin,
+                  background: Container(
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).padding.top + 12,
+                      left: 16,
+                      right: 16,
+                      bottom: 12,
+                    ),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFFB2CBF6),
+                          const Color(0xFFFFFFFF),
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // 顶部用户信息
+                        Row(
+                          children: [
+                            // 用户头像
+                            SvgPicture.network(
+                              userInfo['avatar'] ??
+                                  'https://api.dicebear.com/9.x/avataaars/svg?seed=Felix',
+                              height: 35,
+                              width: 35,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: 35,
+                                  width: 35,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    shape: BoxShape.circle,
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.settings_outlined),
-                                    onPressed: () {},
+                                  child: const Icon(Icons.person,
+                                      color: Colors.grey),
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 12),
+                            // 用户名和等级
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        userInfo['name'] ?? '用户',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 4, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue[50],
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.verified_user,
+                                                size: 12,
+                                                color: Colors.blue[700]),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              '会员',
+                                              style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: Colors.blue[700]),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      _StatItem(
+                                          count: followerInfo['followingCount']
+                                                  ?.toString() ??
+                                              '0',
+                                          label: '关注'),
+                                      const SizedBox(width: 16),
+                                      _StatItem(
+                                          count: followerInfo['followersCount']
+                                                  ?.toString() ??
+                                              '0',
+                                          label: '粉丝'),
+                                      const SizedBox(width: 16),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-
-                          // 主要功能区
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildMainFunction(Icons.access_time, '历史记录'),
-                              _buildMainFunction(Icons.star_border, '收藏'),
-                              _buildMainFunction(Icons.person_add, '关注'),
-                              _buildMainFunction(Icons.people, '粉丝'),
-                              _buildMainFunction(Icons.message, '消息',
-                                  hasNotification: true),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 二级功能区
-                SliverToBoxAdapter(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border(
-                        top: BorderSide(
-                          color: Colors.grey[100]!,
-                          width: 1.0,
-                          style: BorderStyle.solid,
+                            ),
+                            // 右侧图标
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.headset_mic_outlined),
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.settings_outlined),
+                                  onPressed: () {},
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        bottom: BorderSide(
-                          color: Colors.grey[100]!,
-                          width: 1.0,
-                          style: BorderStyle.solid,
-                        ),
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Column(
-                      children: [
+
+                        // 主要功能区
+                        const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildSecondaryFunction(
-                              icon: Icons.shopping_bag_outlined,
-                              iconColor: Colors.blue,
-                              bgColor: Colors.blue[50]!,
-                              label: '我的订单',
-                            ),
-                            _buildSecondaryFunction(
-                              icon: Icons.card_membership,
-                              iconColor: Colors.orange,
-                              bgColor: Colors.orange[50]!,
-                              label: '钱包',
-                            ),
-                            _buildSecondaryFunction(
-                              icon: Icons.monetization_on,
-                              iconColor: Colors.amber,
-                              bgColor: Colors.amber[50]!,
-                              label: '签到',
-                            ),
-                            _buildSecondaryFunction(
-                              icon: Icons.card_giftcard,
-                              iconColor: Colors.amber,
-                              bgColor: Colors.orange[50]!,
-                              label: '积分兑换',
-                            ),
-                            _buildSecondaryFunction(
-                              icon: Icons.share,
-                              iconColor: Colors.red,
-                              bgColor: Colors.red[50]!,
-                              label: '分享app',
-                            ),
+                            _buildMainFunction(Icons.access_time, '历史记录'),
+                            _buildMainFunction(Icons.star_border, '收藏'),
+                            _buildMainFunction(Icons.person_add, '关注'),
+                            _buildMainFunction(Icons.people, '粉丝'),
+                            _buildMainFunction(Icons.message, '消息',
+                                hasNotification: true),
                           ],
                         ),
                       ],
                     ),
                   ),
                 ),
+              ),
 
-                // 藏品标题
-                SliverPersistentHeader(
-                  delegate: _AssetsHeaderDelegate(
-                    Container(
-                      color: Colors.white,
-                      padding: const EdgeInsets.only(
-                          left: 16, right: 16, top: 16, bottom: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              // 二级功能区
+              SliverToBoxAdapter(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFFFF),
+                    border: Border(
+                      top: BorderSide(
+                        color: Colors.grey[100]!,
+                        width: 1.0,
+                        style: BorderStyle.solid,
+                      ),
+                      bottom: BorderSide(
+                        color: Colors.grey[100]!,
+                        width: 1.0,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          const Text(
-                            '持有资产',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          _buildSecondaryFunction(
+                            icon: Icons.shopping_bag_outlined,
+                            iconColor: Colors.blue,
+                            bgColor: Colors.blue[50]!,
+                            label: '我的订单',
                           ),
-                          const SizedBox(width: 60),
-                          // 替换原来的IconButton为搜索框
-                          Expanded(
-                            flex: 1,
-                            child: Container(
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: Center(
-                                // 添加 Center 包裹
-                                child: TextField(
-                                  textAlignVertical:
-                                      TextAlignVertical.center, // 文本垂直居中
-                                  decoration: InputDecoration(
-                                    isDense: true, // 使输入框更紧凑
-                                    hintText: '搜索藏品',
-                                    hintStyle: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 14,
-                                    ),
-                                    prefixIcon: Icon(
-                                      Icons.search,
-                                      color: Colors.grey[400],
-                                      size: 20,
-                                    ),
-                                    prefixIconConstraints: const BoxConstraints(
-                                      // 调整图标约束
-                                      minWidth: 40,
-                                      minHeight: 40,
-                                    ),
-                                    border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 0, // 垂直内边距设为0
-                                      horizontal: 8, // 水平内边距
-                                    ),
-                                  ),
+                          _buildSecondaryFunction(
+                            icon: Icons.monetization_on,
+                            iconColor: Colors.orange,
+                            bgColor: Colors.orange[50]!,
+                            label: '钱包',
+                          ),
+                          _buildSecondaryFunction(
+                              icon: Icons.card_membership,
+                              iconColor: Colors.amber,
+                              bgColor: Colors.amber[50]!,
+                              label: '签到',
+                              hasTag: true),
+                          _buildSecondaryFunction(
+                            icon: Icons.card_giftcard,
+                            iconColor: Colors.amber,
+                            bgColor: Colors.orange[50]!,
+                            label: '积分兑换',
+                          ),
+                          _buildSecondaryFunction(
+                            icon: Icons.share,
+                            iconColor: Colors.red,
+                            bgColor: Colors.red[50]!,
+                            label: '分享app',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 藏品标题
+              SliverToBoxAdapter(
+                child: Container(
+                  color: const Color(0xFFFFFFFF),
+                  padding: const EdgeInsets.only(
+                      left: 16, right: 16, top: 16, bottom: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '持有资产',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 60),
+                      // 替换原来的IconButton为搜索框
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Center(
+                            // 添加 Center 包裹
+                            child: TextField(
+                              textAlignVertical:
+                                  TextAlignVertical.center, // 文本垂直居中
+                              decoration: InputDecoration(
+                                isDense: true, // 使输入框更紧凑
+                                hintText: '搜索藏品',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 14,
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: Colors.grey[400],
+                                  size: 20,
+                                ),
+                                prefixIconConstraints: const BoxConstraints(
+                                  // 调整图标约束
+                                  minWidth: 40,
+                                  minHeight: 40,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 0, // 垂直内边距设为0
+                                  horizontal: 8, // 水平内边距
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                        ],
+                        ),
                       ),
-                    ),
-                    statusBarHeight,
+                      const SizedBox(width: 8),
+                    ],
                   ),
-                  pinned: true, // 固定在顶部
-                ),
+                ), // 固定在顶部
+              ),
 
-                // TabBar（悬浮到顶部）
-                SliverPersistentHeader(
-                  delegate: _SliverAppBarDelegate(
-                    TabBar(
-                      controller: _tabController,
-                      labelColor: Colors.black,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: Theme.of(context).primaryColor,
-                      indicatorWeight: 5,
-                      tabs: const [
-                        Tab(text: '我的藏品'),
-                        Tab(text: '我的盲盒'),
-                        Tab(text: '售出藏品'),
-                      ],
-                    ),
+              // TabBar（悬浮到顶部）
+              SliverPersistentHeader(
+                delegate: _SliverAppBarDelegate(
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Theme.of(context).primaryColor,
+                    indicatorWeight: 5,
+                    tabs: const [
+                      Tab(text: '我的藏品'),
+                      Tab(text: '我的盲盒'),
+                      Tab(text: '售出藏品'),
+                    ],
                   ),
-                  pinned: true, // 固定在顶部
                 ),
-              ];
-            },
-            // 底部TabBarView
-            body: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildMyCollections(),
-                _buildMyMysteryBoxes(),
-                _buildSoldCollections(),
-              ],
-            ),
+                pinned: true, // 固定在顶部
+              ),
+            ];
+          },
+          // 底部TabBarView
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildMyCollections(),
+              _buildMyMysteryBoxes(),
+              _buildSoldCollections(),
+            ],
           ),
         ),
       ),
@@ -516,7 +703,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                         },
                         child: Card(
                           elevation: 2,
-                          color: Colors.white,
+                          color: const Color(0xFFFFFFFF),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -596,7 +783,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                         },
                         child: Card(
                           elevation: 2,
-                          color: Colors.white,
+                          color: const Color(0xFFFFFFFF),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -675,7 +862,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                         },
                         child: Card(
                           elevation: 2,
-                          color: Colors.white,
+                          color: const Color(0xFFFFFFFF),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -742,7 +929,8 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                   ),
                   child: const Text(
                     '2',
-                    style: TextStyle(color: Colors.white, fontSize: 8),
+                    style:
+                        TextStyle(color: const Color(0xFFFFFFFF), fontSize: 8),
                   ),
                 ),
               ),
@@ -791,7 +979,8 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                   ),
                   child: const Text(
                     '每日',
-                    style: TextStyle(color: Colors.white, fontSize: 8),
+                    style:
+                        TextStyle(color: const Color(0xFFFFFFFF), fontSize: 8),
                   ),
                 ),
               ),
@@ -824,7 +1013,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
       context: context,
       isScrollControlled: true,
       useRootNavigator: true, // 使用根导航器，确保覆盖所有UI元素
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFFFFFF),
       elevation: 20,
       clipBehavior: Clip.antiAliasWithSaveLayer, // 添加裁剪行为
       shape: const RoundedRectangleBorder(
@@ -833,6 +1022,15 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
       isDismissible: true,
       enableDrag: true,
       builder: (BuildContext context) {
+        // 获取editions数据并筛选status为2或3的项目
+        final List<dynamic> allEditions = item['editions'] ?? [];
+        final List<dynamic> filteredEditions = allEditions.where((edition) {
+          final status = edition['status'];
+          return status == 2 || status == 3;
+        }).toList();
+
+        final int editionsCount = filteredEditions.length;
+
         return FractionallySizedBox(
           heightFactor: 0.7, // 弹框高度为屏幕高度的80%
           child: Container(
@@ -858,7 +1056,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${item['name']} （共10份）',
+                      '${item['name']} （共${editionsCount}份）',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -875,71 +1073,97 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                 const SizedBox(height: 16),
                 // 资格券列表
                 Expanded(
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: 0.8,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                    ),
-                    itemCount: 10,
-                    itemBuilder: (context, index) {
-                      // 生成随机ID
-                      final id = '#${92300000 + (index * 123456) % 1000000}';
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                  child: filteredEditions.isEmpty
+                      ? Center(child: Text('没有符合条件的资产'))
+                      : GridView.builder(
+                          shrinkWrap: true,
+                          physics: const BouncingScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 0.8,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          itemCount: editionsCount,
+                          itemBuilder: (context, index) {
+                            final edition = filteredEditions[index];
+                            // 获取版本属性
+                            final id = edition['tokenId'] ?? '#${index + 1}';
+                            String statusText = '';
+                            Color statusColor = Colors.orange;
+
+                            // 根据status值设置状态文本和颜色
+                            switch (edition['status']) {
+                              case 2:
+                                statusText = '未寄售';
+                                statusColor = Colors.orange;
+                                break;
+                              case 3:
+                                statusText = '已寄售';
+                                statusColor = Colors.green;
+                                break;
+                              default:
+                                statusText = '未知状态';
+                                statusColor = Colors.grey;
+                            }
+
+                            final price = edition['price'];
+                            final listingPrice =
+                                price != null ? '寄售价¥$price' : '寄售价¥--';
+                            final source = edition['source'] ?? '空投';
+
+                            return Container(
                               decoration: BoxDecoration(
-                                color: Colors.orange.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(4),
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Text(
-                                '未寄售/可合成',
-                                style: TextStyle(
-                                  color: Colors.orange,
-                                  fontSize: 10,
-                                ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      statusText,
+                                      style: TextStyle(
+                                        color: statusColor,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    id.toString(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    listingPrice,
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                  Text(
+                                    '来源: $source',
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              id,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              '寄售价¥--',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 10,
-                              ),
-                            ),
-                            const Text(
-                              '来源: 空投',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
               ],
             ),
@@ -996,7 +1220,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      color: Colors.white, // TabBar的背景色
+      color: const Color(0xFFFFFFFF), // 添加白色背景
       child: _tabBar,
     );
   }
@@ -1025,7 +1249,7 @@ class _AssetsHeaderDelegate extends SliverPersistentHeaderDelegate {
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     // Always add the status bar padding to prevent overlap
     return Container(
-      color: Colors.white,
+      color: const Color(0xFFFFFFFF),
       child: Column(
         children: [
           // Status bar spacer

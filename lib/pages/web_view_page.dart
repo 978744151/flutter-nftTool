@@ -55,7 +55,7 @@ class _WebViewPageState extends State<WebViewPage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
         title: Text(
           widget.title,

@@ -40,24 +40,25 @@ class MyApp extends StatelessWidget {
       title: 'NFT ONCE',
       theme: ThemeData(
         primaryColor: defaultColor,
+        scaffoldBackgroundColor: const Color(0xFFFFFFFF), // 全局背景色设为白色
 
         appBarTheme: AppBarTheme(
           systemOverlayStyle: SystemUiOverlayStyle(
-              // statusBarColor: Colors.white, // 状态栏颜色
-              // statusBarBrightness: Brightness.dark, // 状态栏图标深色
-              ),
+            statusBarColor: const Color(0xFFFFFFFF), // 状态栏颜色
+            // statusBarBrightness: Brightness.dark, // 状态栏图标深色
+          ),
         ),
         // 设置 TextButton 主题
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             backgroundColor: defaultColor,
-            foregroundColor: Colors.white,
+            foregroundColor: const Color(0xFFFFFFFF),
           ),
         ),
         // 设置 ElevatedButton 主题
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white,
+            foregroundColor: const Color(0xFFFFFFFF),
           ),
         ),
         // 设置 OutlinedButton 主题
@@ -67,6 +68,10 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
+      darkTheme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+      ),
+      themeMode: ThemeMode.system, // 跟随系统主题
     );
   }
 }

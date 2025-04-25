@@ -233,7 +233,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                 top: 40,
                 right: 20,
                 child: IconButton(
-                  icon: Icon(Icons.close, color: Colors.white),
+                  icon: Icon(Icons.close, color: const Color(0xFFFFFFFF)),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -247,9 +247,9 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFFFFFF),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.close, color: Colors.black),
@@ -267,7 +267,8 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text('发布', style: TextStyle(color: Colors.white)),
+              child:
+                  Text('发布', style: TextStyle(color: const Color(0xFFFFFFFF))),
             ),
           ),
           SizedBox(width: 16),
@@ -356,7 +357,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(Icons.close,
-                                  color: Colors.white, size: 16),
+                                  color: const Color(0xFFFFFFFF), size: 16),
                             ),
                           ),
                         ),

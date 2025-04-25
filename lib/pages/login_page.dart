@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       // ignore: deprecated_member_use
-                      color: Colors.white.withOpacity(0.1),
+                      color: const Color(0xFFFFFFFF).withOpacity(0.1),
                     ),
                   ),
                 ),
@@ -143,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       // ignore: deprecated_member_use
-                      color: Colors.white.withOpacity(0.1),
+                      color: const Color(0xFFFFFFFF).withOpacity(0.1),
                     ),
                   ),
                 ),
@@ -162,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
                             height: 80,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white,
+                              color: const Color(0xFFFFFFFF),
                               boxShadow: [
                                 BoxShadow(
                                   // ignore: deprecated_member_use
@@ -185,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: const Color(0xFFFFFFFF),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -194,14 +194,14 @@ class _LoginPageState extends State<LoginPage> {
                           style: TextStyle(
                             fontSize: 16,
                             // ignore: deprecated_member_use
-                            color: Colors.white.withOpacity(0.8),
+                            color: const Color(0xFFFFFFFF).withOpacity(0.8),
                           ),
                         ),
                         const SizedBox(height: 48),
                         // 登录表单容器
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: const Color(0xFFFFFFFF),
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
@@ -298,7 +298,7 @@ class _LoginPageState extends State<LoginPage> {
                                               strokeWidth: 2,
                                               valueColor:
                                                   AlwaysStoppedAnimation<Color>(
-                                                      Colors.white),
+                                                      const Color(0xFFFFFFFF)),
                                             ),
                                           )
                                         : const Text(
@@ -306,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
                                             style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w600,
-                                              color: Colors.white,
+                                              color: const Color(0xFFFFFFFF),
                                             ),
                                           ),
                                   ),
@@ -325,7 +325,7 @@ class _LoginPageState extends State<LoginPage> {
                             child: const Text(
                               '还没有账号？立即注册',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: const Color(0xFFFFFFFF),
                                 fontSize: 14,
                               ),
                             ),

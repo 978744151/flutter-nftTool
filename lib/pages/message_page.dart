@@ -133,7 +133,7 @@ class _MessagePageState extends State<MessagePage>
                 },
                 child: AppBar(
                   elevation: 0,
-                  backgroundColor: Colors.white,
+                  backgroundColor: const Color(0xFFFFFFFF),
                   title: Row(
                     children: [
                       Expanded(
@@ -230,7 +230,7 @@ class _MessagePageState extends State<MessagePage>
           // floatingActionButton: FloatingActionButton(
           //   onPressed: () {},
           //   backgroundColor: const Color(0xFF1890FF),
-          //   child: const Icon(Icons.add, color: Colors.white),
+          //   child: const Icon(Icons.add, color:  const Color(0xFFFFFFFF)),
           //   elevation: 2,
           // ),
           // bottomNavigationBar: CustomBottomNavigation(
@@ -458,7 +458,7 @@ class RedBookCard extends StatelessWidget {
         context.go('/messageDetail/$id');
       },
       child: Card(
-        color: Colors.white,
+        color: const Color(0xFFFFFFFF),
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

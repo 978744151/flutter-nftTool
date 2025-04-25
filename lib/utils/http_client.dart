@@ -66,7 +66,7 @@ class HttpClient {
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.CENTER,
             backgroundColor: Colors.black87,
-            textColor: Colors.white,
+            textColor: const Color(0xFFFFFFFF),
             fontSize: 16.0);
         final context = router.routerDelegate.navigatorKey.currentContext;
 

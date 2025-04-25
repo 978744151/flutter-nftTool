@@ -261,11 +261,11 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFFFF),
         appBar: AppBar(
           // 在 AppBar 中修改返回按钮的处理
 
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFFFFFFFF),
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
@@ -378,12 +378,12 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                         ? const BorderSide(color: Colors.black)
                         : BorderSide.none,
                   ),
-                  backgroundColor: isFollowing ? Colors.white : null,
+                  backgroundColor: isFollowing ? const Color(0xFFFFFFFF) : null,
                 ),
                 child: Text(
                   isFollowing ? '已关注' : '关注',
                   style: TextStyle(
-                    color: isFollowing ? Colors.black : Colors.white,
+                    color: isFollowing ? Colors.black : const Color(0xFFFFFFFF),
                     fontSize: 12,
                   ),
                 ),
@@ -594,7 +594,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFFFFFFFF),
                   boxShadow: [
                     BoxShadow(
                       // ignore: deprecated_member_use
@@ -639,7 +639,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFFFFFFFF),
                     boxShadow: [
                       BoxShadow(
                         // ignore: deprecated_member_use
@@ -715,7 +715,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                         child: const Text(
                           '发送',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: const Color(0xFFFFFFFF),
                           ),
                         ),
                       ),

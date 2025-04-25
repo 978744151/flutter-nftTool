@@ -21,13 +21,14 @@ class NftInfo {
   final String price;
   final String quantity;
   final Map<String, dynamic>? owner; // 直接使用 Map
-
+  final List<dynamic> editions;
   NftInfo({
     required this.id,
     required this.name,
     required this.imageUrl,
     required this.price,
     required this.quantity,
+    required this.editions,
     this.owner,
   });
   factory NftInfo.fromJson(Map<String, dynamic> json) {
@@ -38,6 +39,7 @@ class NftInfo {
       price: json['price']?.toString() ?? '',
       quantity: json['quantity']?.toString() ?? '',
       owner: json['owner'] as Map<String, dynamic>?,
+      editions: json['editions'] ?? [],
     );
   }
 }
@@ -58,6 +60,9 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
   late TabController _tabController;
   bool isLoading = true;
   late NftInfo nftInfo;
+  List<Map<dynamic, dynamic>> allEditions = [];
+  List<Map<dynamic, dynamic>> filteredEditions = [];
+  int editionsCount = 0;
   bool _showTitle = false; // 添加标题显示控制
   double _scrollProgress = 0.0; // 添加滚动进度变量
   late AnimationController _imageAnimationController;
@@ -110,6 +115,7 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
       imageUrl: '',
       price: '',
       quantity: '',
+      editions: [],
     );
 
     // 获取数据并启动动画
@@ -142,6 +148,14 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
           setState(() {
             nftInfo = NftInfo.fromJson(data);
             isLoading = false;
+          });
+          setState(() {
+            editionsCount = filteredEditions.length;
+            allEditions = List<Map<String, dynamic>>.from(nftInfo.editions);
+            filteredEditions = allEditions.where((edition) {
+              final status = edition['status'];
+              return status == 2 || status == 3;
+            }).toList();
           });
           // 验证状态更新
         } else {
@@ -219,7 +233,7 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
         tag: "nft-detail-${widget.id}",
         child: Material(
           child: Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: const Color(0xFFFFFFFF),
             body: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
@@ -264,7 +278,7 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Color(0xFFB2CBF6),
-                                  Colors.white, // 渐变结束色改为白色
+                                  const Color(0xFFFFFFFF), // 渐变结束色改为白色
                                 ],
                               ),
                             ),
@@ -303,7 +317,8 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                                                     child: IconButton(
                                                       icon: const Icon(
                                                           Icons.close,
-                                                          color: Colors.white),
+                                                          color: const Color(
+                                                              0xFFFFFFFF)),
                                                       onPressed: () =>
                                                           Navigator.pop(
                                                               context),
@@ -346,7 +361,7 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                     child: FadeTransition(
                       opacity: _fadeAnimation,
                       child: Container(
-                        color: Colors.white,
+                        color: const Color(0xFFFFFFFF),
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -491,57 +506,67 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
 
   Widget _buildConsignmentList() {
     return AnimationLimiter(
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 20,
-        itemBuilder: (context, index) {
-          return AnimationConfiguration.staggeredList(
-            position: index,
-            duration: const Duration(milliseconds: 300),
-            child: Card(
-              color: Colors.white,
-              margin: const EdgeInsets.only(bottom: 12),
-              elevation: 0.6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
+      child: filteredEditions.isEmpty
+          ? const Center(
+              child: Text(
+                '暂无寄售',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
               ),
-              child: SizedBox(
-                child: ListTile(
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  title: Text(
-                    '幻殇·月光 #${index.toString().padLeft(4, '0')}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: filteredEditions.length,
+              itemBuilder: (context, index) {
+                print(filteredEditions);
+                final item = filteredEditions[index];
+
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  duration: const Duration(milliseconds: 300),
+                  child: Card(
+                    color: const Color(0xFFFFFFFF),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    elevation: 0.6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
                     ),
-                  ),
-                  subtitle: Text('0x${index}d8f...3e2a'),
-                  trailing: SizedBox(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '¥0.01',
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontSize: 14,
+                    child: SizedBox(
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 6),
+                        title: Text(
+                          '${nftInfo.name} #${index.toString().padLeft(4, '0')}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          color: Colors.grey[600],
-                          size: 16,
-                        )
-                      ],
+                        subtitle: Text('0x${item['blockchain_id']}d8f...3e2a'),
+                        trailing: SizedBox(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                item['price'],
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.grey[600],
+                                size: 16,
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 
@@ -641,7 +666,7 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      color: Colors.white,
+      color: const Color(0xFFFFFFFF),
       child: _tabBar,
     );
   }

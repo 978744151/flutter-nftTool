@@ -91,26 +91,46 @@ class _ShopPageState extends State<ShopPage>
   Widget build(BuildContext context) {
     super.build(context); // 必须调用父类的 build 方法
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFFFFFF),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
         title: Row(
           children: [
             Expanded(
               child: Container(
-                height: 36,
+                height: 38,
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: '搜索藏品名称',
-                    prefixIcon: Icon(Icons.search, color: Colors.grey),
-                    border: InputBorder.none,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Center(
+                  // 添加 Center 包裹
+                  child: TextField(
+                    textAlignVertical: TextAlignVertical.center, // 文本垂直居中
+                    decoration: InputDecoration(
+                      isDense: true, // 使输入框更紧凑
+                      hintText: '搜索藏品',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.grey[600],
+                        size: 20,
+                      ),
+                      prefixIconConstraints: const BoxConstraints(
+                        // 调整图标约束
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 0, // 垂直内边距设为0
+                        horizontal: 8, // 水平内边距
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -187,7 +207,8 @@ class _ShopPageState extends State<ShopPage>
                     child: Text(
                       category.name,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black,
+                        color:
+                            isSelected ? const Color(0xFFFFFFFF) : Colors.black,
                       ),
                     ),
                   ),
@@ -234,7 +255,7 @@ class _ShopPageState extends State<ShopPage>
                               ),
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: const Color(0xFFFFFFFF),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Column(
@@ -247,7 +268,7 @@ class _ShopPageState extends State<ShopPage>
                                             topLeft: Radius.circular(16),
                                             topRight: Radius.circular(16),
                                           ),
-                                          color: Colors.white,
+                                          color: const Color(0xFFFFFFFF),
                                         ),
                                         child: ClipRRect(
                                           borderRadius: const BorderRadius.only(
@@ -338,7 +359,7 @@ class _ShopPageState extends State<ShopPage>
                         itemBuilder: (context, index) {
                           final nft = nfts[index];
                           return Card(
-                            color: Colors.white,
+                            color: const Color(0xFFFFFFFF),
                             margin: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 6,
