@@ -7,6 +7,9 @@ import '../models/nft_category.dart';
 import '../models/nft.dart';
 import '../services/nft_service.dart';
 import 'package:loading_indicator/loading_indicator.dart';
+import '../widgets/red_book_card.dart';
+import '../models/blog.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -30,11 +33,13 @@ class _HomePageState extends State<HomePage>
   int currentPage = 1;
   final int perPage = 10;
   final ScrollController _scrollController = ScrollController();
+  List<Blog> blogs = [];
 
   @override
   void initState() {
     super.initState();
     fetchCategories();
+    fetchBlogs();
     _scrollController.addListener(_onScroll);
     // 设置状态栏颜色
     SystemChrome.setSystemUIOverlayStyle(
@@ -43,6 +48,38 @@ class _HomePageState extends State<HomePage>
         statusBarIconBrightness: Brightness.dark,
       ),
     );
+  }
+
+  Future<void> fetchBlogs() async {
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await HttpClient.get('/blogs?page=1');
+
+      if (!mounted) return;
+      if (response['success']) {
+        final List<dynamic> blogsData = response['data']['data'] ?? [];
+        setState(() {
+          blogs = blogsData.map((item) => Blog.fromJson(item)).toList();
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+      // 添加错误提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('刷新失败：${e.toString()}')),
+      );
+    }
+    // 返回 Future 完成
+    return Future.value();
   }
 
   @override
@@ -141,10 +178,49 @@ class _HomePageState extends State<HomePage>
                 _buildBlogHotScenes(),
 
                 // 底部空白
-                const SizedBox(height: 20),
               ],
             ),
           ),
+          SliverToBoxAdapter(
+              child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 0.9, // 修改这里
+            ),
+            child: MasonryGridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              controller: _scrollController, // 添加控制器
+              key: const PageStorageKey(
+                'message_grid',
+              ), // 添加 key 保存状态
+              crossAxisCount: 2,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              padding: const EdgeInsets.all(8),
+              itemCount: blogs.length,
+              itemBuilder: (context, index) {
+                final blog = blogs[index];
+                // 根据内容长度动态计算高度
+                final contentLength = blog.title.length + blog.content.length;
+                final randomHeight = 180.0 + (contentLength % 3) * 40;
+
+                return RedBookCard(
+                  avatar: '',
+                  name: blog.createName,
+                  title: blog.title,
+                  content: blog.content,
+                  time: blog.createdAt,
+                  type: blog.type,
+                  defaultImage: blog.defaultImage,
+                  likes: 0,
+                  comments: 0,
+                  height: randomHeight,
+                  id: blog.id,
+                  user: blog.user,
+                );
+              },
+            ),
+          ))
         ],
       ),
     );
@@ -174,7 +250,7 @@ class _HomePageState extends State<HomePage>
             // 调整位置以适应状态栏
             top: 40 + MediaQuery.of(context).padding.top,
             child: Text(
-              'MBTI',
+              'ONCE',
               style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
@@ -387,7 +463,7 @@ class _HomePageState extends State<HomePage>
   // 热门场景
   Widget _buildHotScenes() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -439,18 +515,18 @@ class _HomePageState extends State<HomePage>
   // 热门场景
   Widget _buildBlogHotScenes() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const SizedBox(height: 8),
           const Text(
-            '社区活动',
+            '社区论坛',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
         ],
       ),
     );

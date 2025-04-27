@@ -43,6 +43,14 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              path: '/create',
+              builder: (context, state) => CreateBlogPage(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
               path: '/shop',
               builder: (context, state) => ShopPage(),
               routes: [
@@ -55,14 +63,6 @@ final router = GoRouter(
                   },
                 ),
               ],
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/create',
-              builder: (context, state) => CreateBlogPage(),
             ),
           ],
         ),

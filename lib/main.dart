@@ -33,11 +33,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const defaultColor = Color(0xFF4e65ff);
-
+    final ThemeData myDarkTheme = ThemeData(
+      brightness: Brightness.dark, // 必须设置为dark
+      primaryColor: Colors.blueGrey[900],
+      scaffoldBackgroundColor: Color(0xFF121212),
+      canvasColor: Color(0xFF1E1E1E),
+      cardColor: Color(0xFF252525),
+      dividerColor: Colors.white30,
+      // 更多自定义...
+    );
     return MaterialApp.router(
       // 移除了不存在的 navigatorKey 参数
       routerConfig: router,
       title: 'NFT ONCE',
+
       theme: ThemeData(
         primaryColor: defaultColor,
         scaffoldBackgroundColor: const Color(0xFFFFFFFF), // 全局背景色设为白色
@@ -69,9 +78,27 @@ class MyApp extends StatelessWidget {
         ),
       ),
       darkTheme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: AppBarTheme(
+          color: Color(0xFF1A1A1A),
+          elevation: 0,
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
+        buttonTheme: ButtonThemeData(
+          buttonColor: Colors.blueGrey[700],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        cardTheme: CardTheme(
+          color: Color(0xFF252525),
+          elevation: 2,
+          margin: EdgeInsets.all(8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        // 其他组件样式...
       ),
-      themeMode: ThemeMode.system, // 跟随系统主题
+      themeMode: ThemeMode.light, // 强制使用暗色模式（测试用）
+      // themeMode: ThemeMode.system, // 跟随系统主题
     );
   }
 }

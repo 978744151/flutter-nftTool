@@ -33,17 +33,25 @@ class CustomBottomNavigation extends StatelessWidget {
         // 移除 const
         const BottomNavigationBarItem(
           icon: SizedBox(),
-          label: '首页',
+          label: '欢迎',
         ),
         const BottomNavigationBarItem(
           icon: SizedBox(),
-          label: '藏品',
+          label: '公告',
         ),
         BottomNavigationBarItem(
           icon: SizedBox(
             height: 20, // 与文字高度一致
             child: Icon(
-              Icons.add_circle_outline,
+              Icons.shopping_basket_outlined,
+              size: 40,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+          activeIcon: SizedBox(
+            height: 20, // 与文字高度一致
+            child: Icon(
+              Icons.shopping_basket,
               size: 40,
               color: Theme.of(context).primaryColor,
             ),

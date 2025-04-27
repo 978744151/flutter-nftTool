@@ -274,6 +274,7 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                 context.pop();
               } else {
                 context.go('/message');
+                // context.go('/message');
               }
               // if (Navigator.canPop(context)) {
               //   // 添加检查

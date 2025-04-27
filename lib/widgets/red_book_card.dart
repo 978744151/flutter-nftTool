@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nft_once/models/blog.dart';
 
 class RedBookCard extends StatelessWidget {
-  final String avatar;
-  final String name;
+  final String? avatar;
+  final String? name;
   final String title;
   final String content;
   final String time;
-  final String id;
+  final String? id;
   final String type;
   final String defaultImage;
   final int likes;
@@ -20,10 +21,10 @@ class RedBookCard extends StatelessWidget {
 
   const RedBookCard({
     Key? key,
-    required this.avatar,
+    this.avatar,
     this.user,
-    required this.id,
-    required this.name,
+    this.id,
+    this.name,
     required this.defaultImage,
     required this.title,
     required this.content,
@@ -92,7 +93,7 @@ class RedBookCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          name,
+                          name ?? '',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontSize: 11),

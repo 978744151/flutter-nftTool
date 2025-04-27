@@ -187,41 +187,46 @@ class _MessagePageState extends State<MessagePage>
                                 minHeight: MediaQuery.of(context).size.height *
                                     0.9, // 修改这里
                               ),
-                              child: MasonryGridView.count(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                controller: _scrollController, // 添加控制器
-                                key: const PageStorageKey(
-                                  'message_grid',
-                                ), // 添加 key 保存状态
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 8,
-                                crossAxisSpacing: 8,
-                                padding: const EdgeInsets.all(8),
-                                itemCount: blogs.length,
-                                itemBuilder: (context, index) {
-                                  final blog = blogs[index];
-                                  // 根据内容长度动态计算高度
-                                  final contentLength =
-                                      blog.title.length + blog.content.length;
-                                  final randomHeight =
-                                      180.0 + (contentLength % 3) * 40;
+                              child: Column(
+                                children: [
+                                  MasonryGridView.count(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    controller: _scrollController, // 添加控制器
+                                    key: const PageStorageKey(
+                                      'message_grid',
+                                    ), // 添加 key 保存状态
+                                    crossAxisCount: 2,
+                                    mainAxisSpacing: 8,
+                                    crossAxisSpacing: 8,
+                                    padding: const EdgeInsets.all(8),
+                                    itemCount: blogs.length,
+                                    itemBuilder: (context, index) {
+                                      final blog = blogs[index];
+                                      // 根据内容长度动态计算高度
+                                      final contentLength = blog.title.length +
+                                          blog.content.length;
+                                      final randomHeight =
+                                          180.0 + (contentLength % 3) * 40;
 
-                                  return RedBookCard(
-                                    avatar: '',
-                                    name: blog.createName,
-                                    title: blog.title,
-                                    content: blog.content,
-                                    time: blog.createdAt,
-                                    type: blog.type,
-                                    defaultImage: blog.defaultImage,
-                                    likes: 0,
-                                    comments: 0,
-                                    height: randomHeight,
-                                    id: blog.id,
-                                    user: blog.user,
-                                  );
-                                },
+                                      return RedBookCard(
+                                        avatar: '',
+                                        name: blog.createName,
+                                        title: blog.title,
+                                        content: blog.content,
+                                        time: blog.createdAt,
+                                        type: blog.type,
+                                        defaultImage: blog.defaultImage,
+                                        likes: 0,
+                                        comments: 0,
+                                        height: randomHeight,
+                                        id: blog.id,
+                                        user: blog.user,
+                                      );
+                                    },
+                                  ),
+                                ],
                               ),
                             ))
                           ],
