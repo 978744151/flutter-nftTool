@@ -73,7 +73,7 @@ class MyApp extends StatelessWidget {
         // 设置 OutlinedButton 主题
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            backgroundColor: const Color.fromRGBO(176, 224, 230, 1),
+            backgroundColor: Color(0xFFB2CBF6),
           ),
         ),
       ),

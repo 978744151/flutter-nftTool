@@ -3,5 +3,6 @@
     "dart.hotReloadOnSave": "all",
     "dart.previewHotReloadOnSaveWatcher": true,
     "editor.fontWeight": "normal",
+    "editor.foldingStrategy": "indentation",
    
 }

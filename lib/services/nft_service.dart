@@ -23,7 +23,7 @@ class NFTService {
 
   // 获取NFT列表
   static Future<List<NFT>> getNFTs({
-    required String category,
+    String? category,
     required int page,
     required int perPage,
   }) async {

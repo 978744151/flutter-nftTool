@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    fetchCategories();
+    fetchNFTs();
     fetchBlogs();
     _scrollController.addListener(_onScroll);
     // 设置状态栏颜色
@@ -96,41 +96,19 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  Future<void> fetchCategories() async {
-    try {
-      final categories = await NFTService.getCategories();
-      setState(() {
-        this.categories = categories;
-        if (categories.isNotEmpty) {
-          currentCategory = categories[0].id;
-          fetchNFTs();
-        }
-      });
-    } catch (e) {
-      print('获取分类失败: $e');
-    }
-  }
-
   Future<void> fetchNFTs({bool loadMore = false}) async {
     if (!loadMore) {
       currentPage = 1;
     }
     try {
-      final nftList = await NFTService.getNFTs(
-        category: currentCategory,
-        page: currentPage,
-        perPage: perPage,
-      );
+      final response = await HttpClient.get('/nfts?page=1&perPage=999');
+      if (!mounted) return;
+      final List<dynamic> nftsData = response['data']['data'] ?? [];
+
       setState(() {
-        print('获取NFT成功: $nftList');
-        if (loadMore) {
-          nfts.addAll(nftList);
-          currentPage++;
-        } else {
-          nfts = nftList;
-        }
-        isLoading = false;
+        nfts = nftsData.map((item) => NFT.fromJson(item)).toList();
       });
+      print('获取NFT成功: $nfts');
     } catch (e) {
       print('获取NFT失败: $e');
       setState(() => isLoading = false);
@@ -370,22 +348,89 @@ class _HomePageState extends State<HomePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '发售日记',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildFeatureBox('回头望,鹿在朝', Icons.mic, Colors.pink[100]!, '¥199'),
-              _buildFeatureBox(
-                  '齐天大圣 孙悟空', Icons.school, Colors.green[100]!, '¥99'),
+              const Text(
+                '发售日记',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                ),
+                onPressed: () {
+                  // 查看更多
+                },
+                child: const Text(
+                  '查看更多 >',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
             ],
           ),
+          const SizedBox(height: 12),
+          isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : nfts.isEmpty
+                  ? const Center(
+                      child: Text('暂无数据'),
+                    )
+                  : SizedBox(
+                      height: 110, // 根据内容调整高度
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: nfts.length,
+                        itemBuilder: (context, index) {
+                          final nft = nfts[index];
+                          // 为每个NFT随机选择一个颜色
+                          final colors = [
+                            Colors.pink[100]!,
+                            Colors.green[100]!,
+                            Colors.blue[100]!,
+                            Colors.orange[100]!,
+                            Colors.purple[100]!
+                          ];
+                          final randomColor = colors[index % colors.length];
+
+                          // 为每个NFT选择一个图标
+                          final icons = [
+                            Icons.image,
+                            Icons.pets,
+                            Icons.star,
+                            Icons.favorite,
+                            Icons.diamond
+                          ];
+                          final randomIcon = icons[index % icons.length];
+
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              right: index == nfts.length - 1 ? 0 : 12,
+                            ),
+                            child: GestureDetector(
+                              onTap: () {
+                                // 这里填写你的点击事件逻辑，比如跳转详情页
+                                context.go('/nftDetail/${nft.id}');
+                              },
+                              child: _buildFeatureBox(
+                                nft.name,
+                                randomIcon,
+                                randomColor,
+                                '¥${nft.price}',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
         ],
       ),
     );
@@ -395,11 +440,25 @@ class _HomePageState extends State<HomePage>
   Widget _buildFeatureBox(
       String title, IconData icon, Color color, String price) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.45,
+      width: MediaQuery.of(context).size.width * 0.5,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
+        image: nfts.isNotEmpty &&
+                nfts.any((nft) => nft.name == title && nft.imageUrl.isNotEmpty)
+            ? DecorationImage(
+                image: NetworkImage(
+                  nfts.firstWhere((nft) => nft.name == title).imageUrl,
+                ),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  // ignore: deprecated_member_use
+                  Colors.black.withOpacity(0.3),
+                  BlendMode.darken,
+                ),
+              )
+            : null,
       ),
       child: Row(
         children: [
@@ -411,28 +470,57 @@ class _HomePageState extends State<HomePage>
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(1, 1),
+                      blurRadius: 2,
+                      color: Colors.black45,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 2),
+              const Text(
+                '限量发售',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(1, 1),
+                      blurRadius: 2,
+                      color: Colors.black45,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 price,
-                style: TextStyle(fontSize: 12),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                title == '99' ? '88' : '',
-                style: const TextStyle(fontSize: 12),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(1, 1),
+                      blurRadius: 2,
+                      color: Colors.black45,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
           const Spacer(),
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 20),
+            child: const Icon(Icons.shopping_cart_outlined),
           ),
         ],
       ),

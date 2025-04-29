@@ -10,6 +10,7 @@ import '../pages/blog_detail_page.dart';
 import '../pages/login_page.dart';
 import '../pages/shell_page.dart';
 import '../pages/create_blog_page.dart';
+import '../pages/nft/nft_detail.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(); // 添加这行
 
@@ -33,7 +34,7 @@ final router = GoRouter(
                   parentNavigatorKey: _rootNavigatorKey, // 添加这行
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;
-                    return ShopDetail(id: id);
+                    return NftDetail(id: id);
                   },
                 ),
               ],

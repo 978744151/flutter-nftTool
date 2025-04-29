@@ -115,133 +115,158 @@ class _MessagePageState extends State<MessagePage>
     super.build(context);
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-          resizeToAvoidBottomInset: false, // 添加此行防止键盘弹出导致布局问题
+      child: Stack(children: [
+        Scaffold(
+            resizeToAvoidBottomInset: false, // 添加此行防止键盘弹出导致布局问题
 
-          // backgroundColor:
-          // const Color.fromARGB(110, 238, 232, 230), // 取消注释并设置为白色
-          backgroundColor: const Color(0xFFF9f9f9),
-          appBar: PreferredSize(
-              preferredSize: const Size.fromHeight(kToolbarHeight),
-              child: GestureDetector(
-                onTap: () {
-                  _scrollController.animateTo(
-                    0,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                child: AppBar(
-                  elevation: 0,
-                  backgroundColor: const Color(0xFFFFFFFF),
-                  title: Row(
-                    children: [
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _TabItem(text: '关注', isActive: false),
-                            _TabItem(text: '推荐', isActive: true),
-                            _TabItem(text: '最新', isActive: false),
-                          ],
+            // backgroundColor:
+            // const Color.fromARGB(110, 238, 232, 230), // 取消注释并设置为白色
+            backgroundColor: const Color(0xFFF9f9f9),
+            appBar: PreferredSize(
+                preferredSize: const Size.fromHeight(kToolbarHeight),
+                child: GestureDetector(
+                  onTap: () {
+                    _scrollController.animateTo(
+                      0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  child: AppBar(
+                    elevation: 0,
+                    backgroundColor: const Color(0xFFFFFFFF),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _TabItem(text: '关注', isActive: false),
+                              _TabItem(text: '推荐', isActive: true),
+                              _TabItem(text: '最新', isActive: false),
+                            ],
+                          ),
                         ),
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.search,
+                                color: Color(0xFF8C8C8C)),
+                            onPressed: () {},
+                          ),
                         ),
-                        child: IconButton(
-                          icon: const Icon(Icons.search,
-                              color: Color(0xFF8C8C8C)),
-                          onPressed: () {},
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              )),
-          body: isLoading
-              ? const LoadingIndicatorWidget()
-              : RefreshIndicator(
-                  onRefresh: fetchBlogs, // 确保这里连接到 fetchBlogs
-                  child: blogs.isEmpty
-                      ? ListView(
-                          // 将 Center 改为 ListView 以支持下拉刷新
-                          children: const [
-                            Center(
-                              child: Padding(
-                                padding: EdgeInsets.only(top: 100),
-                                child: Text('暂无数据'),
+                )),
+            body: isLoading
+                ? const LoadingIndicatorWidget()
+                : RefreshIndicator(
+                    onRefresh: fetchBlogs, // 确保这里连接到 fetchBlogs
+                    child: blogs.isEmpty
+                        ? ListView(
+                            // 将 Center 改为 ListView 以支持下拉刷新
+                            children: const [
+                              Center(
+                                child: Padding(
+                                  padding: EdgeInsets.only(top: 100),
+                                  child: Text('暂无数据'),
+                                ),
                               ),
-                            ),
-                          ],
-                        )
-                      : CustomScrollView(
-                          controller: _scrollController, // 添加控制器
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          slivers: [
-                            SliverToBoxAdapter(
-                                child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight: MediaQuery.of(context).size.height *
-                                    0.9, // 修改这里
-                              ),
-                              child: Column(
-                                children: [
-                                  MasonryGridView.count(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    controller: _scrollController, // 添加控制器
-                                    key: const PageStorageKey(
-                                      'message_grid',
-                                    ), // 添加 key 保存状态
-                                    crossAxisCount: 2,
-                                    mainAxisSpacing: 8,
-                                    crossAxisSpacing: 8,
-                                    padding: const EdgeInsets.all(8),
-                                    itemCount: blogs.length,
-                                    itemBuilder: (context, index) {
-                                      final blog = blogs[index];
-                                      // 根据内容长度动态计算高度
-                                      final contentLength = blog.title.length +
-                                          blog.content.length;
-                                      final randomHeight =
-                                          180.0 + (contentLength % 3) * 40;
+                            ],
+                          )
+                        : CustomScrollView(
+                            controller: _scrollController, // 添加控制器
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            slivers: [
+                              SliverToBoxAdapter(
+                                  child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight:
+                                      MediaQuery.of(context).size.height *
+                                          0.9, // 修改这里
+                                ),
+                                child: Column(
+                                  children: [
+                                    MasonryGridView.count(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      controller: _scrollController, // 添加控制器
+                                      key: const PageStorageKey(
+                                        'message_grid',
+                                      ), // 添加 key 保存状态
+                                      crossAxisCount: 2,
+                                      mainAxisSpacing: 8,
+                                      crossAxisSpacing: 8,
+                                      padding: const EdgeInsets.all(8),
+                                      itemCount: blogs.length,
+                                      itemBuilder: (context, index) {
+                                        final blog = blogs[index];
+                                        // 根据内容长度动态计算高度
+                                        final contentLength =
+                                            blog.title.length +
+                                                blog.content.length;
+                                        final randomHeight =
+                                            180.0 + (contentLength % 3) * 40;
 
-                                      return RedBookCard(
-                                        avatar: '',
-                                        name: blog.createName,
-                                        title: blog.title,
-                                        content: blog.content,
-                                        time: blog.createdAt,
-                                        type: blog.type,
-                                        defaultImage: blog.defaultImage,
-                                        likes: 0,
-                                        comments: 0,
-                                        height: randomHeight,
-                                        id: blog.id,
-                                        user: blog.user,
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ))
-                          ],
-                        ))
+                                        return RedBookCard(
+                                          avatar: '',
+                                          name: blog.createName,
+                                          title: blog.title,
+                                          content: blog.content,
+                                          time: blog.createdAt,
+                                          type: blog.type,
+                                          defaultImage: blog.defaultImage,
+                                          likes: 0,
+                                          comments: 0,
+                                          height: randomHeight,
+                                          id: blog.id,
+                                          user: blog.user,
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ))
+                            ],
+                          ))
 
-          // floatingActionButton: FloatingActionButton(
-          //   onPressed: () {},
-          //   backgroundColor: const Color(0xFF1890FF),
-          //   child: const Icon(Icons.add, color:  const Color(0xFFFFFFFF)),
-          //   elevation: 2,
-          // ),
-          // bottomNavigationBar: CustomBottomNavigation(
-          //   currentIndex: 2,
-          // ),
+            // floatingActionButton: FloatingActionButton(
+            //   onPressed: () {},
+            //   backgroundColor: const Color(0xFF1890FF),
+            //   child: const Icon(Icons.add, color:  const Color(0xFFFFFFFF)),
+            //   elevation: 2,
+            // ),
+            // bottomNavigationBar: CustomBottomNavigation(
+            //   currentIndex: 2,
+            // ),
+            ),
+        Positioned(
+          right: 10,
+          bottom: 20,
+          child: RawMaterialButton(
+            onPressed: () {
+              context.go('/create');
+            },
+            elevation: 4.0,
+            fillColor: Colors.white,
+            shape: const CircleBorder(),
+            constraints: const BoxConstraints.tightFor(
+              width: 60,
+              height: 60,
+            ),
+            child: Icon(
+              Icons.add_photo_alternate,
+              color: Theme.of(context).primaryColor,
+              size: 35,
+            ),
           ),
+        ),
+      ]),
     );
   }
 }

@@ -73,48 +73,6 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
     );
 
     _getToken();
-    // _loadMockData();
-  }
-
-  // 加载模拟数据
-  void _loadMockData() {
-    // 模拟我的藏品数据
-    myCollectionsList = List.generate(
-        10,
-        (index) => {
-              'id': 'coll$index',
-              'name': '藏品 #${index.toString().padLeft(3, '0')}',
-              'imageUrl': 'https://picsum.photos/200/300?random=$index',
-              'price': '¥${(index * 10 + 10).toString()}',
-              'date': '2023-08-${(index + 1).toString().padLeft(2, '0')}',
-            });
-
-    // 模拟我的盲盒数据
-    myMysteryBoxesList = List.generate(
-        5,
-        (index) => {
-              'id': 'box$index',
-              'name': '盲盒 #${index.toString().padLeft(3, '0')}',
-              'imageUrl': 'https://picsum.photos/200/300?random=${index + 20}',
-              'price': '¥${(index * 20 + 30).toString()}',
-              'date': '2023-09-${(index + 1).toString().padLeft(2, '0')}',
-            });
-
-    // 模拟售出藏品数据
-    soldCollectionsList = List.generate(
-        8,
-        (index) => {
-              'id': 'sold$index',
-              'name': '售出藏品 #${index.toString().padLeft(3, '0')}',
-              'imageUrl': 'https://picsum.photos/200/300?random=${index + 40}',
-              'price': '¥${(index * 15 + 25).toString()}',
-              'date': '2023-10-${(index + 1).toString().padLeft(2, '0')}',
-              'buyer': '买家ID_${index + 100}',
-            });
-
-    setState(() {
-      isLoading = false;
-    });
   }
 
   @override

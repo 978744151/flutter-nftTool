@@ -1,15 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'dart:convert'; // 添加这行
 
-import '../config/comment_api.dart';
-import 'package:intl/intl.dart'; // 添加这行
-import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/http_client.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import '../utils/storage.dart'; // 添加导入
-import 'package:adaptive_dialog/adaptive_dialog.dart';
-import 'package:flutter/src/widgets/heroes.dart';
+
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter/services.dart';
 import '../api/nft.dart';
@@ -565,9 +557,10 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
                                 Text(
                                   item['price'],
                                   style: TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 14,
-                                  ),
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700),
                                 ),
                                 Icon(
                                   Icons.arrow_forward_ios,
