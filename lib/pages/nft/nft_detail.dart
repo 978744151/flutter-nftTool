@@ -6,6 +6,8 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter/services.dart';
 import '../../api/nft.dart';
 
+import '../../widgets/purchase_options_sheet.dart'; // Add this import
+
 class NftInfo {
   final String id;
   final String name;
@@ -206,6 +208,26 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
     _detailsAnimationController.dispose();
     _tapAnimationController.dispose();
     super.dispose();
+  }
+
+  void _showPurchaseOptionsSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled:
+          true, // Allows the sheet to take up more screen height
+      shape: const RoundedRectangleBorder(
+        // Add rounded corners to the top
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return PurchaseOptionsSheet(
+          imageUrl: nftInfo.imageUrl,
+          price: nftInfo.price,
+          name: nftInfo.name, // Assuming quantity represents stock
+          // Pass other necessary data if needed
+        );
+      },
+    );
   }
 
   @override
@@ -506,7 +528,7 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
                   Positioned(
                     left: 0,
                     right: 0,
-                    bottom: 10,
+                    bottom: 20,
                     child: Container(
                       color: Colors.white.withOpacity(0.95),
                       padding: const EdgeInsets.symmetric(
@@ -517,11 +539,12 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          minimumSize: const Size.fromHeight(48),
+                          fixedSize: const Size.fromHeight(52),
                         ),
                         onPressed: () {
                           // TODO: 跳转购买流程或弹窗
-                          _showNftDetailDialog(context); // Pass the context
+                          _showNftDetailDialog(
+                              context, nftInfo); // Pass the context
                         },
                         child: const Text(
                           '立即购买',
@@ -543,9 +566,13 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
   }
 }
 
-void _showNftDetailDialog(BuildContext context) {
+// Remove the old top-level function if it exists
+// void _showNftDetailDialog(BuildContext context) { ... }
+
+void _showNftDetailDialog(BuildContext context, NftInfo nftInfo) {
   // Accept BuildContext
   // var context; // Remove this line
+  print(context);
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -560,11 +587,12 @@ void _showNftDetailDialog(BuildContext context) {
     enableDrag: true,
     builder: (BuildContext context) {
       // 获取editions数据并筛选status为2或3的项目
-      return FractionallySizedBox(
-        heightFactor: 0.5, // 弹框高度为屏幕高度的80%
+      return SizedBox(
+        height: 320,
+        // heightFactor: 0.4,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,16 +602,20 @@ void _showNftDetailDialog(BuildContext context) {
                 child: Container(
                   width: 40,
                   height: 5,
-                  margin: const EdgeInsets.only(bottom: 16),
+                  margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(2.5),
                   ),
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [],
+              Container(
+                child: PurchaseOptionsSheet(
+                  imageUrl: nftInfo.imageUrl, // 替换成实际的图片 URL
+                  price: nftInfo.price, // 替换成实际的价格
+                  name: nftInfo.name, // 替换成实际的库存uming quantity represents stock
+                  // Pass other necessary data if needed
+                ),
               ),
               const SizedBox(height: 16),
               // 资格券列表
