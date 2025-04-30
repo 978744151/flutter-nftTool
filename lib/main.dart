@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 // import 'package:webview_flutter_android/webview_flutter_android.dart';
 // import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 // import './utils/http_client.dart';
+import 'package:bot_toast/bot_toast.dart';
 
 // import 'dart:io' show Platform; // 用于检测平台
 import 'package:flutter/services.dart';
@@ -46,7 +47,7 @@ class MyApp extends StatelessWidget {
       // 移除了不存在的 navigatorKey 参数
       routerConfig: router,
       title: 'NFT ONCE',
-
+      builder: BotToastInit(),
       theme: ThemeData(
         primaryColor: defaultColor,
         scaffoldBackgroundColor: const Color(0xFFFFFFFF), // 全局背景色设为白色

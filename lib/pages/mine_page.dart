@@ -6,6 +6,35 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/http_client.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
+class NFT {
+  final String id;
+  final String name;
+  final String imageUrl;
+  final String price; // 改为 String 类型
+  final String stock; // 改为 String 类型
+  final String category;
+
+  NFT({
+    required this.id,
+    required this.name,
+    required this.imageUrl,
+    required this.price,
+    required this.stock,
+    required this.category,
+  });
+
+  factory NFT.fromJson(Map<String, dynamic> json) {
+    return NFT(
+      id: json['_id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      imageUrl: json['imageUrl']?.toString() ?? '',
+      price: json['price']?.toString() ?? '0',
+      stock: json['stock']?.toString() ?? '0',
+      category: json['category']?.toString() ?? '',
+    );
+  }
+}
+
 class MinePage extends StatefulWidget {
   const MinePage({Key? key}) : super(key: key);
 
@@ -127,12 +156,16 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
   Future<void> fetchProfileCollections(id) async {
     if (!mounted) return;
     try {
-      final response = await HttpClient.get('/profile/collections');
+      final response = await HttpClient.get('/nfts/user/collect');
       if (!mounted) return;
 
       if (response['success'] == true) {
+        print(response['success'] == true);
+        final List<dynamic> list = response['data'] ?? [];
         setState(() {
-          myCollectionsList = response['data'] ?? [];
+          // myCollectionsList = list
+          // myCollectionsList = response['data'] ?? [];
+          myCollectionsList = List<Map<String, dynamic>>.from(list);
         });
       }
     } catch (e) {

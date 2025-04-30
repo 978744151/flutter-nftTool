@@ -11,8 +11,8 @@ class LoadingIndicatorWidget extends StatelessWidget {
   const LoadingIndicatorWidget({
     super.key,
     this.size = 50,
-    this.type = Indicator.lineSpinFadeLoader,
-    this.colors = const [Colors.blue],
+    this.type = Indicator.lineScaleParty,
+    this.colors = const [Color(0xFF4e65ff)],
   });
 
   @override

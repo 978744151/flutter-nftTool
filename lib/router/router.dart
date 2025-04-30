@@ -11,11 +11,14 @@ import '../pages/login_page.dart';
 import '../pages/shell_page.dart';
 import '../pages/create_blog_page.dart';
 import '../pages/nft/nft_detail.dart';
+import 'package:bot_toast/bot_toast.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(); // 添加这行
 
 final router = GoRouter(
   navigatorKey: _rootNavigatorKey, // 添加这行
+  observers: [BotToastNavigatorObserver()],
+
   initialLocation: '/',
   routes: [
     StatefulShellRoute.indexedStack(

@@ -12,5 +12,5 @@ class NftConfigApi {
   static const String deleteNFTConsignment =
       '$getComments/deleteNFTConsignment';
 
-  static const String purchaseNFT = '$getComments/purchaseNFT';
+  static const String purchaseNFT = '/nfts/purchaseNFT';
 }

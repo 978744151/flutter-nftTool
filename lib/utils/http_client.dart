@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../router/router.dart';
 // ignore: depend_on_referenced_packages
 import 'package:fluttertoast/fluttertoast.dart';
+import '../utils/toast_util.dart';
 import '../config/base.dart';
 
 class HttpClient {
@@ -61,13 +62,7 @@ class HttpClient {
         // _showErrorMessage('登录已过期，请重新登录');
 
         // ignore: depend_on_referenced_packages
-        Fluttertoast.showToast(
-            msg: "登录已过期，请重新登录",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.CENTER,
-            backgroundColor: Colors.black87,
-            textColor: const Color(0xFFFFFFFF),
-            fontSize: 16.0);
+        ToastUtil.showDanger("登录已过期，请重新登录");
         final context = router.routerDelegate.navigatorKey.currentContext;
 
         if (context != null) {
@@ -75,9 +70,8 @@ class HttpClient {
         }
         throw Exception('未授权');
       }
-
       if (response.statusCode != 200 || data['success'] != true) {
-        final message = data['error'] ?? '请求失败';
+        final message = data['message'] ?? data['error'] ?? '请求失败';
         _showErrorMessage(message);
         throw Exception(message);
       }
@@ -97,21 +91,21 @@ class HttpClient {
   }
 
   static void _showErrorMessage(String message) {
-    final context = router.routerDelegate.navigatorKey.currentContext;
-    if (context != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red[700],
-          margin: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height - 100, // 计算距离顶部的位置
-            left: 20,
-            right: 20,
-          ),
-        ),
-      );
-    }
+    ToastUtil.showDanger(message);
+    // final context = router.routerDelegate.navigatorKey.currentContext;
+    // if (context != null) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text(message),
+    //       duration: const Duration(seconds: 3),
+    //       behavior: SnackBarBehavior.floating,
+    //       backgroundColor: Colors.red[700],
+    //       margin: EdgeInsets.only(
+    //         bottom: MediaQuery.of(context).size.height - 100, // 计算距离顶部的位置
+    //         left: 20,
+    //         right: 20,
+    //       ),
+    //     ),
+    //   );
   }
 }

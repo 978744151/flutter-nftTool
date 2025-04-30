@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:nft_once/pages/shop_detail.dart';
+import 'package:nft_once/api/nft.dart';
+
+import '../utils/http_client.dart';
+import '../utils/toast_util.dart';
 
 class PurchaseOptionsSheet extends StatefulWidget {
   final String imageUrl;
   final String price;
   final String name;
+  final String id;
   // Add other necessary parameters like specs, etc.
 
   const PurchaseOptionsSheet({
     Key? key,
     required this.imageUrl,
     required this.price,
+    required this.id,
     required this.name,
   }) : super(key: key);
 
@@ -32,7 +37,8 @@ class _PurchaseOptionsSheetState extends State<PurchaseOptionsSheet> {
     return Container(
       padding: const EdgeInsets.all(8.0),
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.7, // 限制最大高度为屏幕高度的70%
+        maxHeight: MediaQuery.of(context).size.height *
+            0.7, // Limit to 70% of screen height
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -140,7 +146,6 @@ class _PurchaseOptionsSheetState extends State<PurchaseOptionsSheet> {
           SafeArea(
             child: Container(
               width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 8),
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   fixedSize: const Size.fromHeight(52),
@@ -149,9 +154,22 @@ class _PurchaseOptionsSheetState extends State<PurchaseOptionsSheet> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () {
-                  print('Selected Spec: $selectedSpec, Quantity: $quantity');
-                  Navigator.pop(context);
+                onPressed: () async {
+                  // print('Selected Spec: $selectedSpec, Quantity: $quantity');
+                  // Navigator.pop(context);
+                  try {
+                    final response =
+                        await HttpClient.post(NftConfigApi.purchaseNFT, body: {
+                      "id": widget.id,
+                    });
+                    print(response);
+                    if (response['success'] == true) {
+                      ToastUtil.showSuccess(response['message']);
+                      Navigator.pop(context);
+                    }
+                  } catch (e) {
+                    print(e);
+                  }
                 },
                 child: const Text('确认',
                     style: TextStyle(

@@ -128,80 +128,92 @@ class _HomePageState extends State<HomePage>
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFfffff),
-      // 移除appBar,让内容区域扩展到状态栏
-      extendBodyBehindAppBar: true,
-      extendBody: true,
-      body: CustomScrollView(
-        slivers: <Widget>[
-          // 首先放置横幅，扩展到状态栏
-          SliverToBoxAdapter(
-            child: _buildTopBanner(),
+        backgroundColor: const Color(0xFFFfffff),
+        // 移除appBar,让内容区域扩展到状态栏
+        extendBodyBehindAppBar: true,
+        extendBody: true,
+        body: RefreshIndicator(
+          child: CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                expandedHeight: 200.0,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  collapseMode: CollapseMode.pin,
+                  background: _buildTopBanner(),
+                ),
+              ),
+
+              // 其余内容
+              SliverList(
+                delegate: SliverChildListDelegate(
+                  [
+                    // 搜索框
+                    _buildSearchBar(),
+
+                    // 功能区
+                    _buildFunctionArea(),
+
+                    // 热门场景
+                    _buildHotScenes(),
+
+                    // 社区活动
+                    _buildBlogHotScenes(),
+
+                    // 底部空白
+                  ],
+                ),
+              ),
+              SliverToBoxAdapter(
+                  child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height * 0.9, // 修改这里
+                ),
+                child: MasonryGridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  controller: _scrollController, // 添加控制器
+                  key: const PageStorageKey(
+                    'message_grid',
+                  ), // 添加 key 保存状态
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  padding: const EdgeInsets.all(8),
+                  itemCount: blogs.length,
+                  itemBuilder: (context, index) {
+                    final blog = blogs[index];
+                    // 根据内容长度动态计算高度
+                    final contentLength =
+                        blog.title.length + blog.content.length;
+                    final randomHeight = 180.0 + (contentLength % 3) * 40;
+
+                    return RedBookCard(
+                      avatar: '',
+                      name: blog.createName,
+                      title: blog.title,
+                      content: blog.content,
+                      time: blog.createdAt,
+                      type: blog.type,
+                      defaultImage: blog.defaultImage,
+                      likes: 0,
+                      comments: 0,
+                      height: randomHeight,
+                      id: blog.id,
+                      user: blog.user,
+                    );
+                  },
+                ),
+              ))
+            ],
           ),
-
-          // 其余内容
-          SliverList(
-            delegate: SliverChildListDelegate(
-              [
-                // 搜索框
-                _buildSearchBar(),
-
-                // 功能区
-                _buildFunctionArea(),
-
-                // 热门场景
-                _buildHotScenes(),
-
-                // 社区活动
-                _buildBlogHotScenes(),
-
-                // 底部空白
-              ],
-            ),
-          ),
-          SliverToBoxAdapter(
-              child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height * 0.9, // 修改这里
-            ),
-            child: MasonryGridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              controller: _scrollController, // 添加控制器
-              key: const PageStorageKey(
-                'message_grid',
-              ), // 添加 key 保存状态
-              crossAxisCount: 2,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              padding: const EdgeInsets.all(8),
-              itemCount: blogs.length,
-              itemBuilder: (context, index) {
-                final blog = blogs[index];
-                // 根据内容长度动态计算高度
-                final contentLength = blog.title.length + blog.content.length;
-                final randomHeight = 180.0 + (contentLength % 3) * 40;
-
-                return RedBookCard(
-                  avatar: '',
-                  name: blog.createName,
-                  title: blog.title,
-                  content: blog.content,
-                  time: blog.createdAt,
-                  type: blog.type,
-                  defaultImage: blog.defaultImage,
-                  likes: 0,
-                  comments: 0,
-                  height: randomHeight,
-                  id: blog.id,
-                  user: blog.user,
-                );
-              },
-            ),
-          ))
-        ],
-      ),
-    );
+          onRefresh: () async {
+            // 刷新所有数据
+            await Future.wait([fetchNFTs(), fetchBlogs()]);
+          },
+        ));
   }
 
   // 顶部横幅 - 修改为扩展到状态栏

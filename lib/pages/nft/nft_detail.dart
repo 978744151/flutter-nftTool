@@ -221,11 +221,12 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
       ),
       builder: (BuildContext context) {
         return PurchaseOptionsSheet(
-          imageUrl: nftInfo.imageUrl,
-          price: nftInfo.price,
-          name: nftInfo.name, // Assuming quantity represents stock
-          // Pass other necessary data if needed
-        );
+            imageUrl: nftInfo.imageUrl,
+            price: nftInfo.price,
+            name: nftInfo.name,
+            id: nftInfo.id // Assuming quantity represents stock
+            // Pass other necessary data if needed
+            );
       },
     );
   }
@@ -390,12 +391,21 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                Text(
-                                  '¥ ${nftInfo.price}',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.bold,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange[50],
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    '限量版',
+                                    style: TextStyle(
+                                      color: Colors.orange[800],
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -412,21 +422,12 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
                                   child: child,
                                 );
                               },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange[50],
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  '限量版',
-                                  style: TextStyle(
-                                    color: Colors.orange[800],
-                                    fontSize: 12,
-                                  ),
+                              child: Text(
+                                '¥ ${nftInfo.price}',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
@@ -499,7 +500,7 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
                                         ? '拥有者：' +
                                             nftInfo.owner!['nickname']
                                                 .toString()
-                                        : '拥有者：未知',
+                                        : '拥有者：ONCE',
                                     style: TextStyle(
                                         fontSize: 13, color: Colors.grey[700]),
                                   ),
@@ -588,7 +589,6 @@ void _showNftDetailDialog(BuildContext context, NftInfo nftInfo) {
     builder: (BuildContext context) {
       // 获取editions数据并筛选status为2或3的项目
       return SizedBox(
-        height: 320,
         // heightFactor: 0.4,
         child: Container(
           width: double.infinity,
@@ -611,11 +611,13 @@ void _showNftDetailDialog(BuildContext context, NftInfo nftInfo) {
               ),
               Container(
                 child: PurchaseOptionsSheet(
-                  imageUrl: nftInfo.imageUrl, // 替换成实际的图片 URL
-                  price: nftInfo.price, // 替换成实际的价格
-                  name: nftInfo.name, // 替换成实际的库存uming quantity represents stock
-                  // Pass other necessary data if needed
-                ),
+                    imageUrl: nftInfo.imageUrl, // 替换成实际的图片 URL
+                    price: nftInfo.price, // 替换成实际的价格
+                    name:
+                        nftInfo.name, // 替换成实际的库存uming quantity represents stock
+                    id: nftInfo.id
+                    // Pass other necessary data if needed
+                    ),
               ),
               const SizedBox(height: 16),
               // 资格券列表

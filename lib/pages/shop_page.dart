@@ -238,7 +238,7 @@ class _ShopPageState extends State<ShopPage>
                             width: 50,
                             height: 50,
                             child: const LoadingIndicator(
-                              indicatorType: Indicator.pacman,
+                              indicatorType: Indicator.lineScaleParty,
                               strokeWidth: 2,
                             ),
                           ),
