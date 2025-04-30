@@ -106,7 +106,10 @@ class _HomePageState extends State<HomePage>
       final List<dynamic> nftsData = response['data']['data'] ?? [];
 
       setState(() {
-        nfts = nftsData.map((item) => NFT.fromJson(item)).toList();
+        nfts = nftsData
+            .where((item) => item['status'] == 2)
+            .map((item) => NFT.fromJson(item))
+            .toList();
       });
       print('获取NFT成功: $nfts');
     } catch (e) {
@@ -137,9 +140,14 @@ class _HomePageState extends State<HomePage>
             slivers: <Widget>[
               SliverAppBar(
                 elevation: 0,
-                backgroundColor: Colors.transparent,
-                expandedHeight: 200.0,
-                pinned: true,
+                backgroundColor: Colors.white,
+                expandedHeight: 163.0, // 减小展开高度
+                toolbarHeight: 56, // 固定工具栏高度，不再使用状态栏高度
+                collapsedHeight: 56, // 固定折叠高度，确保足够空间显示标题
+                pinned: false, // 固定在顶部
+                floating: true, // 保持浮动特性
+                snap: false,
+
                 flexibleSpace: FlexibleSpaceBar(
                   collapseMode: CollapseMode.pin,
                   background: _buildTopBanner(),
