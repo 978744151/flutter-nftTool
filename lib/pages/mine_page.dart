@@ -82,7 +82,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
             fetchProfileCollections(userInfo['_id']);
             break;
           case 1: // 我的盲盒
-            fetchProfileMysteryBox(userInfo['_id']);
+            fetchProfileCollections(userInfo['_id']);
             break;
           case 2: // 售出藏品
             fetchProfilSalesList(userInfo['_id']);
@@ -122,7 +122,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
         fetchFollowInfo(userInfo['_id']);
         fetchProfile(userInfo['_id']);
         fetchProfileCollections(userInfo['_id']);
-        fetchProfileMysteryBox(userInfo['_id']);
+        // fetchProfileMysteryBox(userInfo['_id']);
         fetchProfilSalesList(userInfo['_id']);
         setState(() {
           isLoading = false;
@@ -165,7 +165,15 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
         setState(() {
           // myCollectionsList = list
           // myCollectionsList = response['data'] ?? [];
-          myCollectionsList = List<Map<String, dynamic>>.from(list);
+          myCollectionsList = list
+              .where((item) => item['type'] == 1)
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList();
+
+          myMysteryBoxesList = list
+              .where((item) => item['type'] == 2)
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList();
         });
       }
     } catch (e) {
@@ -250,7 +258,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
             fetchProfile(userInfo['_id']),
             fetchFollowInfo(userInfo['_id']),
             fetchProfileCollections(userInfo['_id']),
-            fetchProfileMysteryBox(userInfo['_id']),
+            // fetchProfileMysteryBox(userInfo['_id']),
             fetchProfilSalesList(userInfo['_id']),
           ]);
         },
@@ -301,13 +309,19 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                           const SizedBox(width: 8),
                           // 用户名和等级 - 简化为只显示用户名
                           Expanded(
-                            child: Text(
-                              userInfo['name'] ?? '用户',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            child: SizedBox(
+                              child: Row(
+                                children: [
+                                  Text(
+                                    userInfo['name'] ?? '用户',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           // 右侧图标
@@ -629,9 +643,32 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
             body: TabBarView(
               controller: _tabController,
               children: [
-                _buildMyCollections(),
-                _buildMyMysteryBoxes(),
-                _buildSoldCollections(),
+                RefreshIndicator(
+                  onRefresh: () async {
+                    await fetchProfile(userInfo['_id']);
+                    await fetchFollowInfo(userInfo['_id']);
+                    await fetchProfileCollections(userInfo['_id']);
+                  },
+                  child: _buildMyCollections(), // 你的藏品列表Widget
+                ),
+                // 我的盲盒
+                RefreshIndicator(
+                  onRefresh: () async {
+                    await fetchProfile(userInfo['_id']);
+                    await fetchFollowInfo(userInfo['_id']);
+                    await fetchProfileCollections(userInfo['_id']);
+                  },
+                  child: _buildMyMysteryBoxes(), // 你的盲盒列表Widget
+                ),
+                // 售出藏品
+                RefreshIndicator(
+                  onRefresh: () async {
+                    await fetchProfile(userInfo['_id']);
+                    await fetchFollowInfo(userInfo['_id']);
+                    await fetchProfilSalesList(userInfo['_id']);
+                  },
+                  child: _buildSoldCollections(), // 你的售出藏品列表Widget
+                ),
               ],
             ),
           ),
@@ -671,7 +708,8 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                           _showNftDetailDialog(item);
                         },
                         child: Card(
-                          elevation: 2,
+                          elevation: 4,
+                          // margin: EdgeInsets.zero,
                           color: const Color(0xFFFFFFFF),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -679,29 +717,39 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(12),
-                                  topRight: Radius.circular(12),
-                                ),
-                                child: Image.network(
-                                  item['imageUrl'],
-                                  height: 180,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(12),
+                                    topRight: Radius.circular(12),
+                                  ),
+                                  child: Image.network(
+                                    item['imageUrl'],
+                                    height: 180,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 4),
                               Padding(
-                                padding: const EdgeInsets.all(6.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                padding: const EdgeInsets.only(
+                                    left: 8, right: 8, top: 12, bottom: 8),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       item['name'],
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      '( ${item['userOwnedEditions'].length.toString()} 份)',
+                                      style: const TextStyle(),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -773,14 +821,22 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       item['name'],
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      '( ${item['userOwnedEditions'].length.toString()} 份)',
+                                      style: const TextStyle(),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -992,11 +1048,11 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
       enableDrag: true,
       builder: (BuildContext context) {
         // 获取editions数据并筛选status为2或3的项目
-        final List<dynamic> allEditions = item['editions'] ?? [];
-        final List<dynamic> filteredEditions = allEditions.where((edition) {
-          final status = edition['status'];
-          return status == 2 || status == 3;
-        }).toList();
+        final List<dynamic> filteredEditions = item['userOwnedEditions'] ?? [];
+        // final List<dynamic> filteredEditions = allEditions.where((edition) {
+        //   final status = edition['status'];
+        //   return status == 2 || status == 3;
+        // }).toList();
 
         final int editionsCount = filteredEditions.length;
 
@@ -1064,11 +1120,11 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
 
                             // 根据status值设置状态文本和颜色
                             switch (edition['status']) {
-                              case 2:
+                              case 1:
                                 statusText = '未寄售';
                                 statusColor = Colors.orange;
                                 break;
-                              case 3:
+                              case 2:
                                 statusText = '已寄售';
                                 statusColor = Colors.green;
                                 break;

@@ -251,8 +251,8 @@ class _ShopPageState extends State<ShopPage>
                                   SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
                                 childAspectRatio: 0.75,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 6,
+                                mainAxisSpacing: 6,
                               ),
                               itemCount: nfts.length,
                               itemBuilder: (context, index) {
@@ -296,6 +296,7 @@ class _ShopPageState extends State<ShopPage>
                                                 child: Image.network(
                                                   nft.imageUrl,
                                                   fit: BoxFit.cover,
+                                                  width: double.infinity,
                                                   errorBuilder: (context, error,
                                                           stackTrace) =>
                                                       Container(
