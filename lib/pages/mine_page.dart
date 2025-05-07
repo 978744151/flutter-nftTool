@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import '../utils/storage.dart'; // 添加导入
 import 'dart:convert'; // 添加这行
 import 'package:flutter_svg/flutter_svg.dart';
@@ -82,7 +83,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
             fetchProfileCollections(userInfo['_id']);
             break;
           case 1: // 我的盲盒
-            fetchProfileCollections(userInfo['_id']);
+            fetchProfileMysteryBox(userInfo['_id']);
             break;
           case 2: // 售出藏品
             fetchProfilSalesList(userInfo['_id']);
@@ -122,7 +123,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
         fetchFollowInfo(userInfo['_id']);
         fetchProfile(userInfo['_id']);
         fetchProfileCollections(userInfo['_id']);
-        // fetchProfileMysteryBox(userInfo['_id']);
+        fetchProfileMysteryBox(userInfo['_id']);
         fetchProfilSalesList(userInfo['_id']);
         setState(() {
           isLoading = false;
@@ -170,10 +171,10 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
               .map((item) => Map<String, dynamic>.from(item))
               .toList();
 
-          myMysteryBoxesList = list
-              .where((item) => item['type'] == 2)
-              .map((item) => Map<String, dynamic>.from(item))
-              .toList();
+          // myMysteryBoxesList = list
+          //     .where((item) => item['type'] == 2)
+          //     .map((item) => Map<String, dynamic>.from(item))
+          //     .toList();
         });
       }
     } catch (e) {
@@ -258,7 +259,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
             fetchProfile(userInfo['_id']),
             fetchFollowInfo(userInfo['_id']),
             fetchProfileCollections(userInfo['_id']),
-            // fetchProfileMysteryBox(userInfo['_id']),
+            fetchProfileMysteryBox(userInfo['_id']),
             fetchProfilSalesList(userInfo['_id']),
           ]);
         },
@@ -656,7 +657,7 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                   onRefresh: () async {
                     await fetchProfile(userInfo['_id']);
                     await fetchFollowInfo(userInfo['_id']);
-                    await fetchProfileCollections(userInfo['_id']);
+                    await fetchProfileMysteryBox(userInfo['_id']);
                   },
                   child: _buildMyMysteryBoxes(), // 你的盲盒列表Widget
                 ),
