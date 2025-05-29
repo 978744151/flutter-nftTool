@@ -55,6 +55,7 @@ class _MessagePageState extends State<MessagePage>
   bool isLoading = true;
   final ScrollController _scrollController = ScrollController();
   late StreamSubscription _subscription; // 添加这一行
+  String currentTab = '推荐'; // 添加当前标签状态
 
   @override
   void initState() {
@@ -78,6 +79,18 @@ class _MessagePageState extends State<MessagePage>
   @override
   bool get wantKeepAlive => true;
 
+  // 添加获取空状态文本的方法
+  String getEmptyStateText() {
+    switch (currentTab) {
+      case '关注':
+        return '暂无关注的内容\n快去关注一些有趣的用户吧！';
+      case '最新':
+        return '暂无最新内容';
+      default:
+        return '暂无推荐内容';
+    }
+  }
+
   Future<void> fetchBlogs() async {
     if (!mounted) return;
 
@@ -86,7 +99,16 @@ class _MessagePageState extends State<MessagePage>
     });
 
     try {
-      final response = await HttpClient.get('/blogs?page=1');
+      // 根据当前标签获取不同的数据
+      String endpoint = '/blogs?page=1';
+
+      if (currentTab == '关注') {
+        endpoint = '/blogs?page=1';
+      } else if (currentTab == '最新') {
+        endpoint = '/blogs/latest?page=1';
+      }
+
+      final response = await HttpClient.get(endpoint);
 
       if (!mounted) return;
       if (response['success']) {
@@ -141,9 +163,36 @@ class _MessagePageState extends State<MessagePage>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _TabItem(text: '关注', isActive: false),
-                              _TabItem(text: '推荐', isActive: true),
-                              _TabItem(text: '最新', isActive: false),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    currentTab = '关注';
+                                  });
+                                  fetchBlogs();
+                                },
+                                child: _TabItem(
+                                    text: '关注', isActive: currentTab == '关注'),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    currentTab = '推荐';
+                                  });
+                                  fetchBlogs();
+                                },
+                                child: _TabItem(
+                                    text: '推荐', isActive: currentTab == '推荐'),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    currentTab = '最新';
+                                  });
+                                  fetchBlogs();
+                                },
+                                child: _TabItem(
+                                    text: '最新', isActive: currentTab == '最新'),
+                              ),
                             ],
                           ),
                         ),
@@ -169,11 +218,18 @@ class _MessagePageState extends State<MessagePage>
                     child: blogs.isEmpty
                         ? ListView(
                             // 将 Center 改为 ListView 以支持下拉刷新
-                            children: const [
+                            children: [
                               Center(
                                 child: Padding(
-                                  padding: EdgeInsets.only(top: 100),
-                                  child: Text('暂无数据'),
+                                  padding: const EdgeInsets.only(top: 100),
+                                  child: Text(
+                                    getEmptyStateText(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: Color(0xFF8C8C8C),
+                                      fontSize: 16,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -279,12 +335,20 @@ class _TabItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        color: isActive ? const Color(0xFF333333) : const Color(0xFF8C8C8C),
-        fontSize: isActive ? 18 : 16,
-        fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: isActive
+              ? Theme.of(context).primaryColor
+              : const Color(0xFF8C8C8C),
+          fontSize: isActive ? 18 : 15,
+          fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+        ),
       ),
     );
   }

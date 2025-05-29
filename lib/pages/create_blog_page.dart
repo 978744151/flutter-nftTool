@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // 添加foundation导入用于kIsWeb
 
 import 'package:go_router/go_router.dart';
+import 'package:nft_once/router/router.dart';
 
 import 'dart:io';
 import 'dart:convert';
 import '../config/base.dart';
 
 // 添加条件导入
-import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 // 在文件顶部添加导入
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:shared_preferences/shared_preferences.dart'; // 添加导入
 import '../utils/event_bus.dart';
 import '../utils/http_client.dart';
+import '../utils/image_upload_util.dart'; // 导入图片上传工具类
 
 class CreateBlogPage extends StatefulWidget {
   const CreateBlogPage({Key? key}) : super(key: key);
@@ -27,7 +28,8 @@ class CreateBlogPage extends StatefulWidget {
 class _CreateBlogPageState extends State<CreateBlogPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
-  List<File> _images = [];
+  List<XFile> _xFiles = []; // 保存XFile用于H5平台
+  List<File> _images = []; // 保存File用于App平台
   final ImagePicker _picker = ImagePicker();
   List<String> _selectedTags = [];
   final List<String> _suggestedTags = ['咖啡打卡奶茶', '挑战意式浓缩', '自己在家做咖啡', '自制咖啡'];
@@ -46,7 +48,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
       return false;
     }
 
-    if (_images.isEmpty) {
+    if (_xFiles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('请至少上传一张图片')),
       );
@@ -62,7 +64,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
 
       if (images.isNotEmpty) {
         // 检查图片数量限制
-        if (_images.length + images.length > 9) {
+        if (_xFiles.length + images.length > 9) {
           throw Exception('最多只能上传9张图片');
         }
 
@@ -85,7 +87,9 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
         }
 
         setState(() {
-          _images.addAll(images.map((image) => File(image.path)));
+          _xFiles.addAll(images); // 保存XFile用于H5
+          _images
+              .addAll(images.map((image) => File(image.path))); // 保存File用于App
         });
       }
     } catch (e) {
@@ -118,54 +122,33 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
       final token = prefs.getString('token');
       print(token);
       if (token == null) {
+        router.go('/login');
         throw Exception('请先登录');
       }
 
-      final dioInstance = dio.Dio();
-      dioInstance.options.baseUrl = ApiConfig.prodBaseUrl;
-      dioInstance.options.connectTimeout = Duration(seconds: 30); // 设置超时
-      dioInstance.options.receiveTimeout = Duration(seconds: 30);
-      dioInstance.options.headers['Authorization'] = 'Bearer $token';
-
       List<Map<String, String>> imageUrls = [];
-      for (var i = 0; i < _images.length; i++) {
+      for (var i = 0; i < _xFiles.length; i++) {
         try {
-          String fileName = _images[i].path.split('/').last;
-          List<int> imageBytes = await _images[i].readAsBytes();
+          print('正在上传图片 ${i + 1}/${_xFiles.length}');
 
-          dio.FormData formData = dio.FormData.fromMap({
-            'file': dio.MultipartFile.fromBytes(
-              imageBytes,
-              filename: fileName,
-              contentType: MediaType('image', 'jpeg'),
-            ),
-          });
-          final response = await dioInstance.post(
-            '/upload/image',
-            data: formData,
-            onSendProgress: (sent, total) {
-              print(
-                  '图片 ${i + 1} 上传进度: ${(sent / total * 100).toStringAsFixed(2)}%');
-            },
-          );
+          Map<String, dynamic> response;
 
-          // print('服务器响应数据: ${response.data}');
-
-          if (response.statusCode == 200 && response.data != null) {
-            final responseData = response.data;
-            if (responseData is Map<String, dynamic> &&
-                responseData['success'] == true &&
-                responseData['data'] != null &&
-                responseData['data']['url'] != null) {
-              imageUrls.add({'image': responseData['data']['url']});
-            } else {
-              throw Exception('服务器返回的数据格式不正确: $responseData');
-            }
+          // 根据平台选择不同的上传方式
+          if (kIsWeb) {
+            // H5平台的上传方式 - 使用XFile
+            response = await ImageUploadUtil.uploadImageForWeb(_xFiles[i]);
           } else {
-            throw dio.DioException(
-              requestOptions: response.requestOptions,
-              message: '上传失败: 服务器返回状态码 ${response.statusCode}',
-            );
+            // App平台的上传方式 - 使用File
+            response = await HttpClient.uploadFile('/upload/image', _images[i]);
+          }
+
+          if (response['success'] == true &&
+              response['data'] != null &&
+              response['data']['url'] != null) {
+            imageUrls.add({'image': response['data']['url']});
+            print('图片 ${i + 1} 上传成功: ${response['data']['url']}');
+          } else {
+            throw Exception('服务器返回的数据格式不正确: $response');
           }
         } catch (imageError) {
           print('图片 ${i + 1} 上传失败: $imageError');
@@ -199,8 +182,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                '发布失败: ${e.toString().replaceAll('DioException [unknown]: ', '')}'),
+            content: Text('发布失败: ${e.toString()}'),
             duration: Duration(seconds: 3),
           ),
         );
@@ -217,10 +199,14 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
           body: Stack(
             children: [
               PhotoViewGallery.builder(
-                itemCount: _images.length,
+                itemCount: _xFiles.length,
                 builder: (context, index) {
                   return PhotoViewGalleryPageOptions(
-                    imageProvider: FileImage(_images[index]),
+                    imageProvider: kIsWeb
+                        ? NetworkImage(
+                            _xFiles[index].path) // Web平台使用NetworkImage
+                        : FileImage(_images[index])
+                            as ImageProvider, // App平台使用FileImage
                     minScale: PhotoViewComputedScale.contained,
                     maxScale: PhotoViewComputedScale.covered * 2,
                   );
@@ -279,7 +265,7 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 图片网格
-            if (_images.isEmpty)
+            if (_xFiles.isEmpty)
               GestureDetector(
                 onTap: _pickImages,
                 child: Container(
@@ -307,9 +293,9 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: _images.length + 1,
+                  itemCount: _xFiles.length + 1,
                   itemBuilder: (context, index) {
-                    if (index == _images.length) {
+                    if (index == _xFiles.length) {
                       return GestureDetector(
                         onTap: _pickImages,
                         child: Container(
@@ -336,7 +322,11 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8),
                               image: DecorationImage(
-                                image: FileImage(_images[index]),
+                                image: kIsWeb
+                                    ? NetworkImage(_xFiles[index]
+                                        .path) // Web平台使用NetworkImage
+                                    : FileImage(_images[index])
+                                        as ImageProvider, // App平台使用FileImage
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -347,7 +337,10 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
                           top: 12,
                           child: GestureDetector(
                             onTap: () {
-                              setState(() => _images.removeAt(index));
+                              setState(() {
+                                _xFiles.removeAt(index); // 删除XFile
+                                _images.removeAt(index); // 删除File
+                              });
                             },
                             child: Container(
                               padding: EdgeInsets.all(4),

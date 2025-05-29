@@ -10,6 +10,10 @@ class ToastUtil {
     _showToast(message, Icons.error, Colors.red, 'danger');
   }
 
+  static void showError(String message) {
+    _showToast(message, Icons.error, Colors.red, 'error');
+  }
+
   static void showWarning(String message) {
     _showToast(message, Icons.warning, Colors.orange, 'warning');
   }

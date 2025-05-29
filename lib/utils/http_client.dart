@@ -7,6 +7,7 @@ import '../router/router.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../utils/toast_util.dart';
 import '../config/base.dart';
+import 'dart:io';
 
 class HttpClient {
   static const String baseUrl = ApiConfig.baseUrl;
@@ -107,5 +108,16 @@ class HttpClient {
     //       ),
     //     ),
     //   );
+  }
+
+  static Future<dynamic> uploadFile(String path, File file) async {
+    final headers = await _getHeaders();
+    var uri = Uri.parse('$baseUrl$path');
+    var request = http.MultipartRequest('POST', uri);
+    request.headers.addAll(headers);
+    request.files.add(await http.MultipartFile.fromPath('file', file.path));
+    var response = await request.send();
+    var responseData = await response.stream.bytesToString();
+    return json.decode(responseData);
   }
 }

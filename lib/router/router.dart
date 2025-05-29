@@ -10,6 +10,7 @@ import '../pages/blog_detail_page.dart';
 import '../pages/login_page.dart';
 import '../pages/shell_page.dart';
 import '../pages/create_blog_page.dart';
+import '../pages/settings_page.dart';
 import '../pages/nft/nft_detail.dart';
 import 'package:bot_toast/bot_toast.dart';
 
@@ -19,7 +20,14 @@ final router = GoRouter(
   navigatorKey: _rootNavigatorKey, // 添加这行
   observers: [BotToastNavigatorObserver()],
 
-  initialLocation: '/',
+  initialLocation: '/message',
+  redirect: (context, state) {
+    // 如果访问根路径，重定向到message页面
+    if (state.location == '/') {
+      return '/message';
+    }
+    return null; // 不重定向
+  },
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -52,42 +60,42 @@ final router = GoRouter(
             ),
           ],
         ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/shop',
-              builder: (context, state) => ShopPage(),
-              routes: [
-                GoRoute(
-                  path: 'detail/:id', // 修改为子路由
-                  parentNavigatorKey: _rootNavigatorKey, // 添加这行
-                  builder: (context, state) {
-                    final id = state.pathParameters['id']!;
-                    return ShopDetail(id: id);
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/',
-              builder: (context, state) => HomePage(),
-              routes: [
-                GoRoute(
-                  path: 'nftDetail/:id', // 修改为子路由
-                  parentNavigatorKey: _rootNavigatorKey, // 添加这行
-                  builder: (context, state) {
-                    final id = state.pathParameters['id']!;
-                    return NftDetail(id: id);
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
+        // StatefulShellBranch(
+        //   routes: [
+        //     GoRoute(
+        //       path: '/shop',
+        //       builder: (context, state) => ShopPage(),
+        //       routes: [
+        //         GoRoute(
+        //           path: 'detail/:id', // 修改为子路由
+        //           parentNavigatorKey: _rootNavigatorKey, // 添加这行
+        //           builder: (context, state) {
+        //             final id = state.pathParameters['id']!;
+        //             return ShopDetail(id: id);
+        //           },
+        //         ),
+        //       ],
+        //     ),
+        //   ],
+        // ),
+        // StatefulShellBranch(
+        //   routes: [
+        //     GoRoute(
+        //       path: '/',
+        //       builder: (context, state) => HomePage(),
+        //       routes: [
+        //         GoRoute(
+        //           path: 'nftDetail/:id', // 修改为子路由
+        //           parentNavigatorKey: _rootNavigatorKey, // 添加这行
+        //           builder: (context, state) {
+        //             final id = state.pathParameters['id']!;
+        //             return NftDetail(id: id);
+        //           },
+        //         ),
+        //       ],
+        //     ),
+        //   ],
+        // ),
         StatefulShellBranch(
           routes: [
             GoRoute(
@@ -100,6 +108,11 @@ final router = GoRouter(
     ),
     // 将博客详情页移到这里
 
+    GoRoute(
+      path: '/settings',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const SettingsPage(),
+    ),
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginPage(),

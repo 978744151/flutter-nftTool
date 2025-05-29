@@ -222,7 +222,7 @@ class _LoginPageState extends State<LoginPage> {
                                   controller: _emailController,
                                   onChanged: (value) => _validateInputs(),
                                   decoration: InputDecoration(
-                                    labelText: '邮箱',
+                                    labelText: '输入任意邮箱',
                                     prefixIcon:
                                         const Icon(Icons.email_outlined),
                                     border: OutlineInputBorder(

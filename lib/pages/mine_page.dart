@@ -6,6 +6,7 @@ import 'dart:convert'; // 添加这行
 import 'package:flutter_svg/flutter_svg.dart';
 import '../utils/http_client.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:go_router/go_router.dart';
 
 class NFT {
   final String id;
@@ -280,6 +281,24 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                   pinned: true, // 固定在顶部
                   floating: true, // 保持浮动特性
                   snap: false,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.settings,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      onPressed: () async {
+                        context.push('/settings');
+                        // final result =
+                        //     await Navigator.of(context).pushNamed('/settings');
+                        // if (result == true) {
+                        //   // 如果设置页面返回true，表示有更新，刷新用户信息
+                        //   _getToken();
+                        // }
+                      },
+                    ),
+                  ],
                   title: AnimatedOpacity(
                     opacity: _showTitle ? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
