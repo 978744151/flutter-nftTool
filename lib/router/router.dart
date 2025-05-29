@@ -29,15 +29,15 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/',
-              builder: (context, state) => HomePage(),
+              path: '/message',
+              builder: (context, state) => const MessagePage(),
               routes: [
                 GoRoute(
-                  path: 'nftDetail/:id', // 修改为子路由
+                  path: 'messageDetail/:id', // 修改为子路由
                   parentNavigatorKey: _rootNavigatorKey, // 添加这行
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;
-                    return NftDetail(id: id);
+                    return BlogDetailPage(id: id);
                   },
                 ),
               ],
@@ -73,15 +73,15 @@ final router = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/message',
-              builder: (context, state) => const MessagePage(),
+              path: '/',
+              builder: (context, state) => HomePage(),
               routes: [
                 GoRoute(
-                  path: 'messageDetail/:id', // 修改为子路由
+                  path: 'nftDetail/:id', // 修改为子路由
                   parentNavigatorKey: _rootNavigatorKey, // 添加这行
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;
-                    return BlogDetailPage(id: id);
+                    return NftDetail(id: id);
                   },
                 ),
               ],

@@ -33,8 +33,9 @@ class CustomBottomNavigation extends StatelessWidget {
         // 移除 const
         const BottomNavigationBarItem(
           icon: SizedBox(),
-          label: '欢迎',
+          label: '社区',
         ),
+
         const BottomNavigationBarItem(
           icon: SizedBox(),
           label: '公告',
@@ -60,7 +61,7 @@ class CustomBottomNavigation extends StatelessWidget {
         ),
         const BottomNavigationBarItem(
           icon: SizedBox(),
-          label: '社区',
+          label: '欢迎',
         ),
         const BottomNavigationBarItem(
           icon: SizedBox(),
