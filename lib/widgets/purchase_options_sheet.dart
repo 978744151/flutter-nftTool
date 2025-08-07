@@ -162,13 +162,17 @@ class _PurchaseOptionsSheetState extends State<PurchaseOptionsSheet> {
                         await HttpClient.post(NftConfigApi.purchaseNFT, body: {
                       "id": widget.id,
                     });
-                    print(response);
                     if (response['success'] == true) {
+                      print('购买成功');
                       ToastUtil.showSuccess(response['message']);
-                      Navigator.pop(context);
+                      Navigator.pop(context, true); // 返回true通知父组件刷新数据
+                    } else {
+                      ToastUtil.showError(response['message']);
+                      Navigator.pop(context, false); // 返回false表示购买失败
                     }
                   } catch (e) {
                     print(e);
+                    Navigator.pop(context, false); // 发生异常时返回false
                   }
                 },
                 child: const Text('确认',

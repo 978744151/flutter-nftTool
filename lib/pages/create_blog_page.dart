@@ -32,7 +32,16 @@ class _CreateBlogPageState extends State<CreateBlogPage> {
   List<File> _images = []; // 保存File用于App平台
   final ImagePicker _picker = ImagePicker();
   List<String> _selectedTags = [];
-  final List<String> _suggestedTags = ['咖啡打卡奶茶', '挑战意式浓缩', '自己在家做咖啡', '自制咖啡'];
+  final List<String> _suggestedTags = [
+    '汇数通起飞',
+    '狰',
+    '孔子',
+    '兵家',
+    '儒家',
+    '财神',
+    '一鹿生花',
+    '百家争鸣'
+  ];
   bool _validateForm() {
     if (_titleController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

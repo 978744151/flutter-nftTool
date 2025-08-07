@@ -30,21 +30,21 @@ class CustomBottomNavigation extends StatelessWidget {
       ),
       elevation: 0,
       items: [
+        const BottomNavigationBarItem(
+          icon: SizedBox(),
+          label: '欢迎',
+        ),
         // 移除 const
         const BottomNavigationBarItem(
           icon: SizedBox(),
           label: '社区',
         ),
 
-        // const BottomNavigationBarItem(
-        //   icon: SizedBox(),
-        //   label: '公告',
-        // ),
         BottomNavigationBarItem(
           icon: SizedBox(
             height: 20, // 与文字高度一致
             child: Icon(
-              Icons.rate_review_outlined,
+              Icons.shopping_cart_outlined,
               size: 40,
               color: Theme.of(context).primaryColor,
             ),
@@ -52,17 +52,17 @@ class CustomBottomNavigation extends StatelessWidget {
           activeIcon: SizedBox(
             height: 20, // 与文字高度一致
             child: Icon(
-              Icons.rate_review,
+              Icons.shopping_cart,
               size: 40,
               color: Theme.of(context).primaryColor,
             ),
           ),
           label: '',
         ),
-        // const BottomNavigationBarItem(
-        //   icon: SizedBox(),
-        //   label: '欢迎',
-        // ),
+        const BottomNavigationBarItem(
+          icon: SizedBox(),
+          label: '公告',
+        ),
         const BottomNavigationBarItem(
           icon: SizedBox(),
           label: '我的',

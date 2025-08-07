@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:nft_once/pages/nft/nft_edition_detail.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import '../utils/storage.dart'; // 添加导入
 import 'dart:convert'; // 添加这行
@@ -165,17 +166,8 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
         print(response['success'] == true);
         final List<dynamic> list = response['data'] ?? [];
         setState(() {
-          // myCollectionsList = list
-          // myCollectionsList = response['data'] ?? [];
-          myCollectionsList = list
-              .where((item) => item['type'] == 1)
-              .map((item) => Map<String, dynamic>.from(item))
-              .toList();
-
-          // myMysteryBoxesList = list
-          //     .where((item) => item['type'] == 2)
-          //     .map((item) => Map<String, dynamic>.from(item))
-          //     .toList();
+          myCollectionsList =
+              list.map((item) => Map<String, dynamic>.from(item)).toList();
         });
       }
     } catch (e) {
@@ -724,8 +716,11 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                   child: ScaleAnimation(
                     child: FadeInAnimation(
                       child: GestureDetector(
-                        onTap: () {
-                          _showNftDetailDialog(item);
+                        onTap: () async {
+                          print(123);
+                          final response = await HttpClient.get(
+                              '/nfts/user/detail/${item['_id']}');
+                          _showNftDetailDialog(response['data']);
                         },
                         child: Card(
                           elevation: 4,
@@ -1158,53 +1153,60 @@ class _MinePageState extends State<MinePage> with TickerProviderStateMixin {
                                 price != null ? '寄售价¥$price' : '寄售价¥--';
                             final source = edition['source'] ?? '空投';
 
-                            return Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: statusColor.withOpacity(0.3),
-                                      borderRadius: BorderRadius.circular(4),
+                            return GestureDetector(
+                              onTap: () async {
+                                // 点击跳转到NFT子集详情页
+                                context.push(
+                                    '/nftEditionDetail/${edition['_id']}/${item['_id']}');
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: statusColor.withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        statusText,
+                                        style: TextStyle(
+                                          color: statusColor,
+                                          fontSize: 10,
+                                        ),
+                                      ),
                                     ),
-                                    child: Text(
-                                      statusText,
-                                      style: TextStyle(
-                                        color: statusColor,
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      id.toString(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      listingPrice,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
                                         fontSize: 10,
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    id.toString(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
+                                    Text(
+                                      '来源: $source',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 10,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    listingPrice,
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                  Text(
-                                    '来源: $source',
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             );
                           },

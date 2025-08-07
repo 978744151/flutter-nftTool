@@ -18,6 +18,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   Map<dynamic, dynamic> userInfo = {};
   String? _avatarPath;
   XFile? _avatarXFile;
@@ -32,6 +33,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -42,6 +44,7 @@ class _SettingsPageState extends State<SettingsPage> {
         setState(() {
           userInfo = json.decode(userInfoJson);
           _nameController.text = userInfo['name'] ?? userInfo['username'] ?? '';
+          _emailController.text = userInfo['email'] ?? '';
         });
       }
     } catch (e) {
@@ -76,19 +79,38 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
 
+    // 验证邮箱格式
+    if (_emailController.text.trim().isNotEmpty) {
+      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+      if (!emailRegex.hasMatch(_emailController.text.trim())) {
+        ToastUtil.showError('请输入有效的邮箱地址');
+        return;
+      }
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // 更新用户名
-      final nameResponse = await HttpClient.post('/user/profile', body: {
+      // 更新用户名和邮箱
+      final updateData = {
         'name': _nameController.text.trim(),
-      });
+      };
+
+      if (_emailController.text.trim().isNotEmpty) {
+        updateData['email'] = _emailController.text.trim();
+      }
+
+      final nameResponse =
+          await HttpClient.put('/auth/updateDetails', body: updateData);
 
       if (nameResponse['success'] == true) {
         // 更新本地存储的用户信息
         userInfo['name'] = _nameController.text.trim();
+        if (_emailController.text.trim().isNotEmpty) {
+          userInfo['email'] = _emailController.text.trim();
+        }
         await Storage.setString('userInfo', json.encode(userInfo));
 
         // 如果有选择新头像，上传头像
@@ -97,7 +119,11 @@ class _SettingsPageState extends State<SettingsPage> {
         }
 
         ToastUtil.showSuccess('设置保存成功');
-        Navigator.of(context).pop(true); // 返回true表示有更新
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/mine');
+        }
       } else {
         ToastUtil.showError(nameResponse['message'] ?? '保存失败');
       }
@@ -406,8 +432,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         // 头像部分
                         _buildModernAvatarSection(),
                         const SizedBox(height: 30),
-                        // 用户名设置
-                        _buildModernUsernameSection(),
+
+                        // 用户信息设置
+                        _buildUserInfoSection(),
                         const SizedBox(height: 30),
                         // 其他设置项
                         _buildOtherSettingsSection(),
@@ -423,7 +450,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildModernUsernameSection() {
+  Widget _buildUserInfoSection() {
     return Container(
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
@@ -456,7 +483,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(width: 12),
               const Text(
-                '用户名设置',
+                '用户信息设置',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -466,6 +493,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ],
           ),
           const SizedBox(height: 20),
+          // 用户名输入框
           TextField(
             controller: _nameController,
             decoration: InputDecoration(
@@ -523,6 +551,61 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               );
             },
+          ),
+          const SizedBox(height: 20),
+          // 邮箱输入框
+          TextField(
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              hintText: '请输入您的邮箱地址（可选）',
+              hintStyle: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 16,
+              ),
+              filled: true,
+              fillColor: const Color(0xFFF8F9FA),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: const BorderSide(
+                  color: Color(0xFF764ba2),
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
+              prefixIcon: Container(
+                margin: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF764ba2).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.alternate_email,
+                  color: Color(0xFF764ba2),
+                  size: 20,
+                ),
+              ),
+            ),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '邮箱地址用于接收重要通知和找回密码',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w400,
+            ),
           ),
         ],
       ),

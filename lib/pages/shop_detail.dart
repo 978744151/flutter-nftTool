@@ -5,6 +5,7 @@ import '../utils/http_client.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter/services.dart';
 import '../api/nft.dart';
+import 'nft/nft_sliver_app_bar.dart';
 
 class NftInfo {
   final String id;
@@ -229,125 +230,13 @@ class _ShopDetailState extends State<ShopDetail> with TickerProviderStateMixin {
             body: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
-                  SliverAppBar(
+                  NftSliverAppBarWithImage(
+                    title: nftInfo.name,
+                    imageUrl: nftInfo.imageUrl,
+                    isLoading: isLoading,
                     expandedHeight: 340,
-                    pinned: true,
-                    title: AnimatedOpacity(
-                      opacity: _showTitle ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 200),
-                      child: Text(
-                        nftInfo.name,
-                        style: TextStyle(
-                          color: Color.lerp(
-                            Colors.transparent,
-                            Colors.black,
-                            _scrollProgress,
-                          ),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    backgroundColor: Color(0xFFB2CBF6),
-                    // elevation: _scrollProgress * 2, //
-                    flexibleSpace: FlexibleSpaceBar(
-                      titlePadding: EdgeInsets.zero,
-                      // 不显示 FlexibleSpaceBar 的标题
-                      title: const SizedBox.shrink(),
-                      collapseMode: CollapseMode.parallax, // 视差折叠效果
-                      stretchModes: [
-                        StretchMode.zoomBackground, // 背景放大（拉伸时）
-                        StretchMode.blurBackground, // 背景模糊（拉伸时）
-                      ],
-                      background: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          // 渐变背景
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Color(0xFFB2CBF6),
-                                  const Color(0xFFFFFFFF), // 渐变结束色改为白色
-                                ],
-                              ),
-                            ),
-                          ),
-                          // 居中的主图 - 添加缩放动画
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: SizedBox(
-                              child: isLoading
-                                  ? null
-                                  : ScaleTransition(
-                                      scale: _imageScaleAnimation,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          HapticFeedback.mediumImpact();
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => Dialog(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              child: Stack(
-                                                children: [
-                                                  InteractiveViewer(
-                                                    minScale: 0.5,
-                                                    maxScale: 4.0,
-                                                    child: Image.network(
-                                                      nftInfo.imageUrl,
-                                                      fit: BoxFit.contain,
-                                                    ),
-                                                  ),
-                                                  Positioned(
-                                                    right: 10,
-                                                    top: 10,
-                                                    child: IconButton(
-                                                      icon: const Icon(
-                                                          Icons.close,
-                                                          color: const Color(
-                                                              0xFFFFFFFF)),
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: SizedBox(
-                                          width: double.infinity,
-                                          child: Image.network(
-                                            height: 280,
-                                            nftInfo.imageUrl,
-                                            fit: BoxFit.contain,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Container(
-                                                color: Colors.transparent,
-                                                child: const Icon(
-                                                  Icons.image_not_supported,
-                                                  size: 50,
-                                                  color: Colors.grey,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          // 居中的主图
-                        ],
-                      ),
-                    ),
+                    scrollProgress: _scrollProgress,
+                    showTitle: _showTitle,
                   ),
                   SliverToBoxAdapter(
                     child: FadeTransition(

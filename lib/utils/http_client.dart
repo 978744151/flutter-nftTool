@@ -55,6 +55,16 @@ class HttpClient {
     return _handleResponse(response);
   }
 
+  static Future<dynamic> put(String path, {Map<String, dynamic>? body}) async {
+    final headers = await _getHeaders();
+    final response = await http.put(
+      Uri.parse('$baseUrl$path'),
+      headers: headers,
+      body: json.encode(body),
+    );
+    return _handleResponse(response);
+  }
+
   static dynamic _handleResponse(http.Response response) {
     try {
       final data = json.decode(response.body);

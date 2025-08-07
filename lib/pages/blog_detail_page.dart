@@ -453,17 +453,13 @@ class _BlogDetailPageState extends State<BlogDetailPage> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Text(
-                                      blogInfo.content,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        height: 1.6,
-                                      ),
-                                    ),
-                                  ],
+                                const SizedBox(height: 16),
+                                Text(
+                                  blogInfo.content,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    height: 1.8,
+                                  ),
                                 ),
                                 const SizedBox(height: 24),
                                 Row(

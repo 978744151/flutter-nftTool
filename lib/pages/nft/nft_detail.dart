@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../api/nft.dart';
 
 import '../../widgets/purchase_options_sheet.dart'; // Add this import
+import 'nft_sliver_app_bar.dart';
 
 class NftInfo {
   final String id;
@@ -14,6 +15,7 @@ class NftInfo {
   final String imageUrl;
   final String price;
   final String quantity;
+  final String soldQty;
   final Map<String, dynamic>? owner; // 直接使用 Map
   final List<dynamic> editions;
   NftInfo({
@@ -23,6 +25,7 @@ class NftInfo {
     required this.price,
     required this.quantity,
     required this.editions,
+    required this.soldQty,
     this.owner,
   });
   factory NftInfo.fromJson(Map<String, dynamic> json) {
@@ -34,6 +37,7 @@ class NftInfo {
       quantity: json['quantity']?.toString() ?? '',
       owner: json['owner'] as Map<String, dynamic>?,
       editions: json['editions'] ?? [],
+      soldQty: json['soldQty']?.toString() ?? '',
     );
   }
 }
@@ -47,10 +51,10 @@ class NftDetail extends StatefulWidget {
   });
 
   @override
-  State<NftDetail> createState() => _ShopDetailState();
+  State<NftDetail> createState() => _NftDetailState();
 }
 
-class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
+class _NftDetailState extends State<NftDetail> with TickerProviderStateMixin {
   late TabController _tabController;
   bool isLoading = true;
   late NftInfo nftInfo;
@@ -104,13 +108,13 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
 
     // 初始化 nftInfo
     nftInfo = NftInfo(
-      id: '',
-      name: '',
-      imageUrl: '',
-      price: '',
-      quantity: '',
-      editions: [],
-    );
+        id: '',
+        name: '',
+        imageUrl: '',
+        price: '',
+        quantity: '',
+        editions: [],
+        soldQty: '');
 
     // 获取数据并启动动画
     fetchData();
@@ -231,6 +235,72 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
     );
   }
 
+  void _showNftDetailDialog(BuildContext context, NftInfo nftInfo) {
+    // Accept BuildContext
+    // var context; // Remove this line
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true, // 使用根导航器，确保覆盖所有UI元素
+      backgroundColor: const Color(0xFFFFFFFF),
+      elevation: 20,
+      clipBehavior: Clip.antiAliasWithSaveLayer, // 添加裁剪行为
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      isDismissible: true,
+      enableDrag: true,
+      builder: (BuildContext context) {
+        // 获取editions数据并筛选status为2或3的项目
+        return SizedBox(
+          // heightFactor: 0.4,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 添加一个小横条作为拖动指示器
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                ),
+                Container(
+                  child: PurchaseOptionsSheet(
+                      imageUrl: nftInfo.imageUrl, // 替换成实际的图片 URL
+                      price: nftInfo.price, // 替换成实际的价格
+                      name: nftInfo
+                          .name, // 替换成实际的库存uming quantity represents stock
+                      id: nftInfo.id
+                      // Pass other necessary data if needed
+                      ),
+                ),
+                const SizedBox(height: 16),
+                // 资格券列表
+              ],
+            ),
+          ),
+        );
+      },
+    ).then((result) {
+      print('购买结果: $result');
+      // 当购买成功时，result为true，调用fetchData刷新数据
+      if (result == true) {
+        // 需要在这里调用fetchData，但是这个方法在类外部，需要传递引用
+        // 或者将这个方法移到类内部
+        fetchData(); // 等待数据加载完成
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
@@ -252,125 +322,13 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
             body: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
-                  SliverAppBar(
+                  NftSliverAppBarWithImage(
+                    title: nftInfo.name,
+                    imageUrl: nftInfo.imageUrl,
+                    isLoading: isLoading,
                     expandedHeight: 340,
-                    pinned: true,
-                    title: AnimatedOpacity(
-                      opacity: _showTitle ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 200),
-                      child: Text(
-                        nftInfo.name,
-                        style: TextStyle(
-                          color: Color.lerp(
-                            Colors.transparent,
-                            Colors.black,
-                            _scrollProgress,
-                          ),
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    backgroundColor: Color(0xFFB2CBF6),
-                    // elevation: _scrollProgress * 2, //
-                    flexibleSpace: FlexibleSpaceBar(
-                      titlePadding: EdgeInsets.zero,
-                      // 不显示 FlexibleSpaceBar 的标题
-                      title: const SizedBox.shrink(),
-                      collapseMode: CollapseMode.parallax, // 视差折叠效果
-                      stretchModes: [
-                        StretchMode.zoomBackground, // 背景放大（拉伸时）
-                        StretchMode.blurBackground, // 背景模糊（拉伸时）
-                      ],
-                      background: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          // 渐变背景
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Color(0xFFB2CBF6),
-                                  const Color(0xFFFFFFFF), // 渐变结束色改为白色
-                                ],
-                              ),
-                            ),
-                          ),
-                          // 居中的主图 - 添加缩放动画
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: SizedBox(
-                              child: isLoading
-                                  ? null
-                                  : ScaleTransition(
-                                      scale: _imageScaleAnimation,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          HapticFeedback.mediumImpact();
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => Dialog(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              child: Stack(
-                                                children: [
-                                                  InteractiveViewer(
-                                                    minScale: 0.5,
-                                                    maxScale: 4.0,
-                                                    child: Image.network(
-                                                      nftInfo.imageUrl,
-                                                      fit: BoxFit.contain,
-                                                    ),
-                                                  ),
-                                                  Positioned(
-                                                    right: 10,
-                                                    top: 10,
-                                                    child: IconButton(
-                                                      icon: const Icon(
-                                                          Icons.close,
-                                                          color: const Color(
-                                                              0xFFFFFFFF)),
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: SizedBox(
-                                          width: double.infinity,
-                                          child: Image.network(
-                                            height: 280,
-                                            nftInfo.imageUrl,
-                                            fit: BoxFit.contain,
-                                            errorBuilder:
-                                                (context, error, stackTrace) {
-                                              return Container(
-                                                color: Colors.transparent,
-                                                child: const Icon(
-                                                  Icons.image_not_supported,
-                                                  size: 50,
-                                                  color: Colors.grey,
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          // 居中的主图
-                        ],
-                      ),
-                    ),
+                    scrollProgress: _scrollProgress,
+                    showTitle: _showTitle,
                   ),
                   SliverToBoxAdapter(
                     child: FadeTransition(
@@ -449,7 +407,7 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
                                         ),
                                       ),
                                       Text(
-                                        '${nftInfo.quantity} 份',
+                                        '${nftInfo.soldQty} / ${nftInfo.quantity} 份',
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
@@ -544,8 +502,10 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
                         ),
                         onPressed: () {
                           // TODO: 跳转购买流程或弹窗
-                          _showNftDetailDialog(
-                              context, nftInfo); // Pass the context
+                          _showNftDetailDialog(context, nftInfo);
+
+                          // _showNftDetailDialog(
+                          //     context, nftInfo); // Pass the context
                         },
                         child: const Text(
                           '立即购买',
@@ -568,66 +528,6 @@ class _ShopDetailState extends State<NftDetail> with TickerProviderStateMixin {
 }
 
 // Remove the old top-level function if it exists
-// void _showNftDetailDialog(BuildContext context) { ... }
-
-void _showNftDetailDialog(BuildContext context, NftInfo nftInfo) {
-  // Accept BuildContext
-  // var context; // Remove this line
-  print(context);
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    useRootNavigator: true, // 使用根导航器，确保覆盖所有UI元素
-    backgroundColor: const Color(0xFFFFFFFF),
-    elevation: 20,
-    clipBehavior: Clip.antiAliasWithSaveLayer, // 添加裁剪行为
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    isDismissible: true,
-    enableDrag: true,
-    builder: (BuildContext context) {
-      // 获取editions数据并筛选status为2或3的项目
-      return SizedBox(
-        // heightFactor: 0.4,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 添加一个小横条作为拖动指示器
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
-              ),
-              Container(
-                child: PurchaseOptionsSheet(
-                    imageUrl: nftInfo.imageUrl, // 替换成实际的图片 URL
-                    price: nftInfo.price, // 替换成实际的价格
-                    name:
-                        nftInfo.name, // 替换成实际的库存uming quantity represents stock
-                    id: nftInfo.id
-                    // Pass other necessary data if needed
-                    ),
-              ),
-              const SizedBox(height: 16),
-              // 资格券列表
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar _tabBar;
